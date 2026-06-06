@@ -900,19 +900,26 @@ async function submitForm() {
   });
 
   try {
+    // Build form-encoded body — Make parses this cleanly with no-cors
+    const formBody = new URLSearchParams();
+    Object.entries(properties).forEach(([k, v]) => {
+      if (v !== null && v !== undefined && v !== '') {
+        formBody.append(k, String(v));
+      }
+    });
+
     const res = await fetch(WEBHOOK_URL, {
       method: 'POST',
       mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(properties)
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: formBody.toString()
     });
 
-    // no-cors mode means we can't read the response status
-    // but if we got here without throwing, the request was sent
+    // no-cors mode means we can't read the response, but request was sent
     document.getElementById('form-wrap').style.display = 'none';
     document.getElementById('success-state').classList.add('visible');
     document.getElementById('order-id-display').textContent =
-      `Order submitted — we\'ll be in touch soon!`;
+      `Order submitted — we'll be in touch soon!`;
 
   } catch (err) {
     console.error(err);
