@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rocket Launch Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;500;600;700&family=Barlow:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+body {
+  background: transparent;
+  font-family: 'Barlow Condensed', sans-serif;
+  display: flex;
+  justify-content: center;
+  padding: 10px;
+}
+
+.widget {
+  width: 100%;
+  max-width: 520px;
+  background: #020810;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.9);
+  border: 1px solid rgba(0,180,255,0.15);
+  position: relative;
+}
+
+/* Star field background */
+.widget::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 25% 45%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 40% 10%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 55% 70%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 70% 30%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 85% 55%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 92% 20%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 15% 80%, rgba(255,255,255,0.2) 0%, transparent 100%),
+    radial-gradient(1px 1px at 60% 90%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 78% 75%, rgba(255,255,255,0.2) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Header ── */
+.header {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(180deg, #040d1a 0%, #020810 100%);
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid rgba(0,180,255,0.2);
+}
+.header-inner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.rocket-icon {
+  font-size: 40px;
+  filter: drop-shadow(0 0 12px rgba(0,180,255,0.6));
+  flex-shrink: 0;
+  animation: hover 3s ease-in-out infinite;
+}
+@keyframes hover {
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-4px)}
+}
+.title-block {flex:1}
+.title-main {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px;
+  color: #00b4ff;
+  letter-spacing: 4px;
+  line-height: 1;
+  text-shadow: 0 0 20px rgba(0,180,255,0.4);
+}
+.title-sub {
+  font-size: 11px;
+  color: #1a4060;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+.live-dot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: #4ac880;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.live-dot::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4ac880;
+  box-shadow: 0 0 6px #4ac880;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100%{opacity:1;transform:scale(1)}
+  50%{opacity:0.4;transform:scale(0.8)}
+}
+
+/* ── Next launch hero ── */
+.next-hero {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(135deg, #040d1a 0%, #071525 50%, #040d1a 100%);
+  border-bottom: 1px solid rgba(0,180,255,0.15);
+  padding: 16px 20px;
+}
+.next-label {
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #00b4ff;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.next-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(0,180,255,0.3), transparent);
+}
+.next-mission {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  color: #e0f4ff;
+  letter-spacing: 2px;
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+.next-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.meta-pill {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 2px;
+  letter-spacing: 0.05em;
+}
+.meta-agency { background: rgba(0,180,255,0.1); color: #00b4ff; border: 1px solid rgba(0,180,255,0.2); }
+.meta-rocket  { background: rgba(255,255,255,0.04); color: #6a9ab0; border: 1px solid rgba(255,255,255,0.08); }
+.meta-pad     { background: rgba(255,255,255,0.04); color: #4a7a90; border: 1px solid rgba(255,255,255,0.06); font-size:10px; }
+
+/* Countdown */
+.countdown {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.cd-block {
+  background: rgba(0,180,255,0.05);
+  border: 1px solid rgba(0,180,255,0.1);
+  border-radius: 4px;
+  padding: 8px 4px;
+  text-align: center;
+}
+.cd-num {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 28px;
+  color: #00b4ff;
+  line-height: 1;
+  text-shadow: 0 0 10px rgba(0,180,255,0.3);
+}
+.cd-label {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: #1a4060;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+.cd-tbd {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  color: #1a4060;
+  letter-spacing: 3px;
+  text-align: center;
+  padding: 12px;
+}
+
+/* ── Launch list ── */
+.launch-list {
+  position: relative;
+  z-index: 1;
+  padding: 12px 14px 8px;
+}
+.list-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 13px;
+  color: #0a3050;
+  letter-spacing: 3px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.list-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(0,180,255,0.08);
+}
+
+.launch-card {
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  margin-bottom: 5px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.04);
+  border-left: 3px solid #0a3050;
+  transition: all 0.2s;
+}
+.launch-card:hover {
+  background: rgba(0,180,255,0.04);
+  border-left-color: #00b4ff;
+}
+.launch-card.go     { border-left-color: #4ac880; }
+.launch-card.tbd    { border-left-color: #0a3050; }
+.launch-card.hold   { border-left-color: #e8a030; }
+.launch-card.success{ border-left-color: #4ac880; background: rgba(74,200,128,0.03); }
+.launch-card.failure{ border-left-color: #c84a4a; background: rgba(200,74,74,0.03); }
+
+/* Date block */
+.lc-date { text-align: center; }
+.lc-month {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #0a3050;
+  line-height: 1;
+}
+.lc-day {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  color: #00b4ff;
+  line-height: 1;
+}
+.lc-time {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  color: #0a3050;
+}
+
+/* Launch info */
+.lc-mission {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #c0d8e8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lc-details {
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.lc-agency {
+  font-size: 11px;
+  color: #00b4ff;
+  opacity: 0.7;
+}
+.lc-sep { color: #0a3050; font-size: 10px; }
+.lc-pad { font-size: 10px; color: #0a3050; }
+
+/* Status badge */
+.status-badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+.status-badge.go      { background: rgba(74,200,128,0.12); color: #4ac880; border: 1px solid rgba(74,200,128,0.2); }
+.status-badge.tbd     { background: rgba(10,48,80,0.4);   color: #0a5080; border: 1px solid rgba(10,80,120,0.2); }
+.status-badge.hold    { background: rgba(232,160,48,0.1); color: #e8a030; border: 1px solid rgba(232,160,48,0.2); }
+.status-badge.success { background: rgba(74,200,128,0.1); color: #4ac880; border: 1px solid rgba(74,200,128,0.15); }
+.status-badge.failure { background: rgba(200,74,74,0.1);  color: #c84a4a; border: 1px solid rgba(200,74,74,0.15); }
+.status-badge.partial { background: rgba(232,160,48,0.1); color: #e8a030; border: 1px solid rgba(232,160,48,0.2); }
+
+/* Loading / error */
+.loading-state {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 40px 20px;
+  color: #0a3050;
+}
+.loading-rocket {
+  font-size: 32px;
+  display: block;
+  margin-bottom: 12px;
+  animation: rise 1.5s ease-in-out infinite;
+}
+@keyframes rise {
+  0%,100%{transform:translateY(0) rotate(-45deg)}
+  50%{transform:translateY(-10px) rotate(-45deg)}
+}
+.loading-text {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: #0a4060;
+}
+.error-state {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 30px 20px;
+  color: #c84a4a;
+  font-size: 13px;
+}
+
+/* Footer */
+.footer {
+  position: relative;
+  z-index: 1;
+  padding: 8px 16px;
+  background: rgba(0,0,0,0.4);
+  border-top: 1px solid rgba(0,180,255,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.footer-source {
+  font-size: 9px;
+  color: #0a3050;
+  letter-spacing: 0.1em;
+}
+.refresh-btn {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: #0a4060;
+  background: none;
+  border: 1px solid #0a3050;
+  border-radius: 2px;
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.1em;
+}
+.refresh-btn:hover {
+  color: #00b4ff;
+  border-color: #00b4ff;
+}
+</style>
+</head>
+<body>
+<div class="widget">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-inner">
+      <div class="rocket-icon">🚀</div>
+      <div class="title-block">
+        <div class="title-main">Launch Tracker</div>
+        <div class="title-sub">SpaceX · NASA · Blue Origin · Rocket Lab · ULA & More</div>
+      </div>
+      <div class="live-dot">Live</div>
+    </div>
+  </div>
+
+  <!-- Dynamic content -->
+  <div id="app">
+    <div class="loading-state">
+      <span class="loading-rocket">🚀</span>
+      <div class="loading-text">ACQUIRING TELEMETRY...</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-source">Data: Launch Library 2 · thespacedevs.com</div>
+    <button class="refresh-btn" onclick="loadLaunches()">↻ REFRESH</button>
+  </div>
+
+</div>
+
+<script>
+// Agency emoji mapping
+const agencyEmoji = {
+  'SpaceX': '⬛',
+  'NASA': '🔵',
+  'Blue Origin': '🔷',
+  'Rocket Lab': '⚫',
+  'United Launch Alliance': '🔴',
+  'ULA': '🔴',
+  'Boeing': '🟦',
+  'Sierra Space': '🟩',
+  'Northrop Grumman': '🟧',
+  'Virgin Galactic': '🟣',
+  'Astra': '🔘',
+};
+
+function getAgencyEmoji(name) {
+  for (const [key, val] of Object.entries(agencyEmoji)) {
+    if (name && name.toLowerCase().includes(key.toLowerCase())) return val;
+  }
+  return '🛸';
+}
+
+function getStatusClass(statusName) {
+  if (!statusName) return 'tbd';
+  const s = statusName.toLowerCase();
+  if (s.includes('go')) return 'go';
+  if (s.includes('success')) return 'success';
+  if (s.includes('failure') || s.includes('failed')) return 'failure';
+  if (s.includes('partial')) return 'partial';
+  if (s.includes('hold') || s.includes('inflight')) return 'hold';
+  return 'tbd';
+}
+
+function getStatusLabel(statusName) {
+  if (!statusName) return 'TBD';
+  const s = statusName.toLowerCase();
+  if (s.includes('go for launch')) return 'GO';
+  if (s.includes('to be determined')) return 'TBD';
+  if (s.includes('to be confirmed')) return 'TBC';
+  if (s.includes('success')) return 'SUCCESS';
+  if (s.includes('failure')) return 'FAILURE';
+  if (s.includes('partial failure')) return 'PARTIAL';
+  if (s.includes('hold')) return 'HOLD';
+  if (s.includes('in flight')) return 'IN FLIGHT';
+  return statusName.toUpperCase().slice(0, 8);
+}
+
+function formatDate(netStr) {
+  if (!netStr) return { month: '???', day: '??', time: 'TBD' };
+  const d = new Date(netStr);
+  const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  return {
+    month: months[d.getMonth()],
+    day: d.getDate(),
+    time: d.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', timeZoneName:'short', hour12:true })
+  };
+}
+
+function buildCountdown(netStr, tbdtime, tbddate) {
+  if (tbddate || tbdtime) {
+    return `<div class="cd-tbd">DATE / TIME TBD</div>`;
+  }
+  const target = new Date(netStr).getTime();
+  const now = Date.now();
+  const diff = target - now;
+  if (diff <= 0) return `<div class="cd-tbd">LAUNCHED</div>`;
+
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+
+  return `
+    <div class="countdown" id="countdown-blocks">
+      <div class="cd-block"><div class="cd-num" id="cd-d">${String(d).padStart(2,'0')}</div><div class="cd-label">Days</div></div>
+      <div class="cd-block"><div class="cd-num" id="cd-h">${String(h).padStart(2,'0')}</div><div class="cd-label">Hours</div></div>
+      <div class="cd-block"><div class="cd-num" id="cd-m">${String(m).padStart(2,'0')}</div><div class="cd-label">Mins</div></div>
+      <div class="cd-block"><div class="cd-num" id="cd-s">${String(s).padStart(2,'0')}</div><div class="cd-label">Secs</div></div>
+    </div>`;
+}
+
+let countdownTarget = null;
+let countdownInterval = null;
+
+function startCountdown(netStr, tbdtime, tbddate) {
+  if (countdownInterval) clearInterval(countdownInterval);
+  if (tbddate || tbdtime) return;
+
+  countdownTarget = new Date(netStr).getTime();
+
+  countdownInterval = setInterval(() => {
+    const diff = countdownTarget - Date.now();
+    if (diff <= 0) { clearInterval(countdownInterval); return; }
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    const cd = document.getElementById('cd-d');
+    const ch = document.getElementById('cd-h');
+    const cm = document.getElementById('cd-m');
+    const cs = document.getElementById('cd-s');
+    if (cd) cd.textContent = String(d).padStart(2,'0');
+    if (ch) ch.textContent = String(h).padStart(2,'0');
+    if (cm) cm.textContent = String(m).padStart(2,'0');
+    if (cs) cs.textContent = String(s).padStart(2,'0');
+  }, 1000);
+}
+
+function truncate(str, len) {
+  if (!str) return 'Unknown Mission';
+  return str.length > len ? str.slice(0, len - 1) + '…' : str;
+}
+
+function renderLaunches(data) {
+  const launches = data.results || [];
+  if (!launches.length) {
+    document.getElementById('app').innerHTML = `<div class="error-state">No upcoming launches found.</div>`;
+    return;
+  }
+
+  const next = launches[0];
+  const rest = launches.slice(1);
+  const nd = formatDate(next.net);
+  const agencyName = next.launch_service_provider?.name || 'Unknown';
+  const rocketName = next.rocket?.configuration?.name || next.rocket?.configuration?.full_name || 'Unknown Rocket';
+  const padName = next.pad?.name || next.pad?.location?.name || 'Unknown Pad';
+  const missionName = next.mission?.name || next.name || 'Unknown Mission';
+  const statusClass = getStatusClass(next.status?.name);
+  const statusLabel = getStatusLabel(next.status?.name);
+
+  let html = `
+    <!-- Next Launch Hero -->
+    <div class="next-hero">
+      <div class="next-label">Next Launch</div>
+      <div class="next-mission">${truncate(missionName, 48)}</div>
+      <div class="next-meta">
+        <span class="meta-pill meta-agency">${getAgencyEmoji(agencyName)} ${agencyName}</span>
+        <span class="meta-pill meta-rocket">🚀 ${truncate(rocketName, 28)}</span>
+        <span class="meta-pill meta-pad">📍 ${truncate(padName, 32)}</span>
+      </div>
+      ${buildCountdown(next.net, next.tbdtime, next.tbddate)}
+    </div>
+
+    <!-- Upcoming list -->
+    <div class="launch-list">
+      <div class="list-label">Upcoming Launches</div>`;
+
+  rest.forEach(l => {
+    const d = formatDate(l.net);
+    const sc = getStatusClass(l.status?.name);
+    const sl = getStatusLabel(l.status?.name);
+    const agency = l.launch_service_provider?.name || 'Unknown';
+    const pad = l.pad?.location?.name || l.pad?.name || 'Unknown';
+    const mission = truncate(l.mission?.name || l.name || 'Unknown', 36);
+
+    html += `
+      <div class="launch-card ${sc}">
+        <div class="lc-date">
+          <div class="lc-month">${d.month}</div>
+          <div class="lc-day">${d.day}</div>
+          <div class="lc-time">${l.tbdtime ? 'TBD' : d.time.split(' ')[0]}</div>
+        </div>
+        <div class="lc-info">
+          <div class="lc-mission">${mission}</div>
+          <div class="lc-details">
+            <span class="lc-agency">${getAgencyEmoji(agency)} ${agency}</span>
+            <span class="lc-sep">·</span>
+            <span class="lc-pad">${truncate(pad, 28)}</span>
+          </div>
+        </div>
+        <div class="status-badge ${sc}">${sl}</div>
+      </div>`;
+  });
+
+  html += `</div>`;
+  document.getElementById('app').innerHTML = html;
+  startCountdown(next.net, next.tbdtime, next.tbddate);
+}
+
+async function loadLaunches() {
+  document.getElementById('app').innerHTML = `
+    <div class="loading-state">
+      <span class="loading-rocket">🚀</span>
+      <div class="loading-text">ACQUIRING TELEMETRY...</div>
+    </div>`;
+
+  // Filter to US-based launches only (location contains USA)
+  // Using the free public API - no key needed
+  const url = 'https://ll.thespacedevs.com/2.3.0/launches/upcoming/?limit=10&format=json';
+
+  try {
+    const res = await fetch(url, {
+      headers: { 'Accept': 'application/json' }
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    renderLaunches(data);
+  } catch (err) {
+    // Fallback to the dev API if prod has issues
+    try {
+      const res2 = await fetch('https://lldev.thespacedevs.com/2.3.0/launches/upcoming/?limit=10&format=json');
+      if (!res2.ok) throw new Error(`HTTP ${res2.status}`);
+      const data2 = await res2.json();
+      renderLaunches(data2);
+    } catch (err2) {
+      document.getElementById('app').innerHTML = `
+        <div class="error-state">
+          🛸 Unable to reach launch data.<br>
+          <small style="color:#0a3050;font-size:11px;margin-top:8px;display:block">Check connection and tap Refresh</small>
+        </div>`;
+    }
+  }
+}
+
+// Load on start
+loadLaunches();
+</script>
+</body>
+</html>
