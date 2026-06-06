@@ -634,7 +634,8 @@ function calculate() {
   const qtyStd    = qty - qtyPlus;
 
   const costStd      = v('cost-std');
-  const costPlus     = v('cost-plus', costStd);
+  const costPlusRaw  = document.getElementById('cost-plus').value.trim();
+  const costPlus     = costPlusRaw !== '' ? v('cost-plus') : costStd;
   const costTransfer = v('cost-transfer');
   const costMat      = v('cost-materials');
   const costShipOut  = v('cost-ship-out');
@@ -645,10 +646,16 @@ function calculate() {
   // Tax: only in event/in-person mode, built into price
   const taxPct = channel === 'event' ? v('tax-rate', 7) / 100 : 0;
 
-  // Average item cost accounting for size mix
-  const avgItemCost = qty > 0
-    ? (qtyStd * costStd + qtyPlus * costPlus) / qty
-    : costStd;
+  // Average item cost: single mode uses plus cost directly if entered (this IS a plus size item)
+  // Bulk mode uses weighted average based on qty breakdown
+  let avgItemCost;
+  if (mode === 'bulk') {
+    avgItemCost = qty > 0
+      ? (qtyStd * costStd + qtyPlus * costPlus) / qty
+      : costStd;
+  } else {
+    avgItemCost = costPlusRaw !== '' ? costPlus : costStd;
+  }
 
   // Per-item base cost (before fee/tax which depend on price)
   const basePerItem = avgItemCost + costTransfer + costMat + (costShipOut / qty) + (costMisc / qty) - (costShipIn / qty);
