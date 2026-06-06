@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sweet Magnolia Pricing Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #0f0d0a;
+  --surface:   #181410;
+  --surface2:  #201c18;
+  --border:    rgba(255,220,120,0.1);
+  --border2:   rgba(255,220,120,0.18);
+  --gold:      #e8b84b;
+  --gold-dim:  #8a6820;
+  --gold-glow: rgba(232,184,75,0.15);
+  --text:      #e8dfd0;
+  --text-dim:  #6a5a45;
+  --text-mid:  #9a8a70;
+  --green:     #5ec87a;
+  --green-dim: rgba(94,200,122,0.12);
+  --orange:    #e8943a;
+  --red:       #d05050;
+  --radius:    6px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: transparent;
+  font-family: 'DM Sans', sans-serif;
+  display: flex;
+  justify-content: center;
+  padding: 10px;
+  color: var(--text);
+}
+
+.widget {
+  width: 100%;
+  max-width: 540px;
+  background: var(--bg);
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border2);
+  box-shadow: 0 12px 48px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,220,120,0.08);
+}
+
+/* ── Header ── */
+.header {
+  background: linear-gradient(135deg, #1a1408 0%, #241c0e 60%, #1a1408 100%);
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid var(--border2);
+  position: relative;
+  overflow: hidden;
+}
+.header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity: 0.4;
+}
+.header-inner { display: flex; align-items: center; gap: 14px; }
+.magnolia { font-size: 36px; filter: drop-shadow(0 0 10px rgba(232,184,75,0.4)); }
+.title-block {}
+.title-main {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 0.5px;
+  line-height: 1;
+  text-shadow: 0 0 20px rgba(232,184,75,0.3);
+}
+.title-sub {
+  font-size: 11px;
+  color: var(--gold-dim);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+/* ── Mode toggle ── */
+.mode-bar {
+  display: flex;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.mode-btn {
+  flex: 1;
+  padding: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+}
+.mode-btn.active {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+  background: var(--gold-glow);
+}
+.mode-btn:hover:not(.active) { color: var(--text-mid); }
+
+/* ── Form ── */
+.form-body { padding: 18px 20px 14px; }
+
+.field-group {
+  margin-bottom: 14px;
+}
+.field-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.field-hint {
+  font-size: 9px;
+  color: var(--text-dim);
+  opacity: 0.6;
+  font-style: italic;
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 400;
+}
+
+.field-row {
+  display: grid;
+  gap: 8px;
+}
+.field-row.col2 { grid-template-columns: 1fr 1fr; }
+.field-row.col3 { grid-template-columns: 1fr 1fr 1fr; }
+
+.input-wrap {
+  position: relative;
+}
+.input-prefix {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  color: var(--gold-dim);
+  pointer-events: none;
+  font-family: 'DM Mono', monospace;
+}
+.input-suffix {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  color: var(--text-dim);
+  pointer-events: none;
+}
+
+input[type="text"], input[type="number"] {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 9px 12px;
+  font-family: 'DM Mono', monospace;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  -moz-appearance: textfield;
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+input[type="text"] {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+}
+.has-prefix input { padding-left: 26px; }
+.has-suffix input { padding-right: 30px; }
+
+input:focus {
+  border-color: var(--gold-dim);
+  box-shadow: 0 0 0 2px rgba(232,184,75,0.08);
+}
+input::placeholder { color: var(--text-dim); opacity: 0.5; }
+
+/* Section divider */
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0 12px;
+}
+.section-divider span {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.section-divider::before,
+.section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* Calculate button */
+.calc-btn {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, #2a1e08, #3a2a10);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius);
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  font-style: italic;
+  color: var(--gold);
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+  margin-top: 6px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+.calc-btn:hover {
+  background: linear-gradient(135deg, #3a2a10, #4a3818);
+  border-color: var(--gold);
+  box-shadow: 0 4px 20px rgba(232,184,75,0.15);
+}
+.calc-btn:active { transform: translateY(1px); }
+
+/* ── Results ── */
+.results { display: none; padding: 0 20px 18px; }
+.results.visible { display: block; }
+
+.results-header {
+  font-size: 9px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.results-header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* Cost breakdown */
+.cost-summary {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+.cost-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 13px;
+}
+.cost-row.total {
+  border-top: 1px solid var(--border);
+  margin-top: 6px;
+  padding-top: 8px;
+  font-weight: 600;
+  font-size: 14px;
+}
+.cost-label { color: var(--text-mid); }
+.cost-value {
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  color: var(--text);
+}
+.cost-row.total .cost-value { color: var(--gold); font-size: 15px; }
+
+/* Price table */
+.price-table-label {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.price-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.price-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px 6px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+.price-card:hover { border-color: var(--gold-dim); background: var(--gold-glow); }
+.price-card.good { border-color: rgba(94,200,122,0.3); background: var(--green-dim); }
+.price-card.great { border-color: var(--green); background: rgba(94,200,122,0.18); }
+.price-card.low { border-color: rgba(208,80,80,0.25); }
+
+.pc-price {
+  font-family: 'DM Mono', monospace;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--gold);
+  line-height: 1;
+}
+.pc-profit {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  margin-top: 4px;
+  line-height: 1;
+}
+.pc-profit.pos { color: var(--green); }
+.pc-profit.neg { color: var(--red); }
+.pc-margin {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 3px;
+}
+.pc-badge {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  background: var(--green);
+  color: #0a1a0a;
+  padding: 1px 5px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+/* Bulk totals */
+.bulk-totals {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+}
+.bulk-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 13px;
+}
+.bulk-row.highlight {
+  border-top: 1px solid var(--border);
+  margin-top: 6px;
+  padding-top: 8px;
+}
+.bulk-label { color: var(--text-mid); }
+.bulk-value {
+  font-family: 'DM Mono', monospace;
+  font-size: 14px;
+  color: var(--text);
+}
+.bulk-value.gold { color: var(--gold); font-size: 16px; font-weight: 500; }
+.bulk-value.green { color: var(--green); font-size: 15px; }
+
+/* Reset */
+.reset-btn {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.reset-btn:hover { border-color: var(--gold-dim); color: var(--text-mid); }
+
+/* Footer */
+.footer {
+  padding: 8px 20px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  font-size: 10px;
+  color: var(--text-dim);
+  text-align: center;
+  font-style: italic;
+}
+</style>
+</head>
+<body>
+<div class="widget">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-inner">
+      <div class="magnolia">🌸</div>
+      <div class="title-block">
+        <div class="title-main">Sweet Magnolia Printing</div>
+        <div class="title-sub">Job Pricing Calculator</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mode toggle -->
+  <div class="mode-bar">
+    <button class="mode-btn active" onclick="setMode('single')" id="btn-single">Single Item</button>
+    <button class="mode-btn" onclick="setMode('bulk')" id="btn-bulk">Bulk Order</button>
+  </div>
+
+  <!-- Sale channel toggle -->
+  <div class="mode-bar" style="border-top:1px solid var(--border);background:var(--surface2)">
+    <button class="mode-btn active" onclick="setChannel('online')" id="btn-online" style="font-size:11px">🌐 Online Sale</button>
+    <button class="mode-btn" onclick="setChannel('event')" id="btn-event" style="font-size:11px">🎪 Event / In Person</button>
+  </div>
+
+  <!-- Tax rate field (event mode only) -->
+  <div id="tax-group" style="display:none;padding:10px 20px;background:var(--surface2);border-bottom:1px solid var(--border)">
+    <div class="field-label" style="margin-bottom:6px">
+      Sales Tax Rate
+      <span class="field-hint">MS = 7% · Memphis = 9.25%</span>
+    </div>
+    <div class="input-wrap has-suffix" style="max-width:160px">
+      <input type="number" id="tax-rate" placeholder="7.0" step="0.25" min="0" max="20" value="7.0">
+      <span class="input-suffix">%</span>
+    </div>
+    <div style="font-size:10px;color:var(--text-dim);margin-top:6px;font-style:italic">Tax will be built into your price — customer pays it without seeing it as a line item</div>
+  </div>
+
+  <!-- Form -->
+  <div class="form-body">
+
+    <!-- Job description -->
+    <div class="field-group">
+      <div class="field-label">
+        Job / Item Description
+        <span class="field-hint">shirt, hat, koozie, etc.</span>
+      </div>
+      <input type="text" id="job-desc" placeholder="e.g. Comfort Colors tee, Richardson 112 hat…">
+    </div>
+
+    <!-- Quantity (bulk mode) -->
+    <div class="field-group" id="qty-group" style="display:none">
+      <div class="field-label">Quantity</div>
+      <div class="input-wrap">
+        <input type="number" id="qty" placeholder="24" min="1">
+      </div>
+    </div>
+
+    <div class="section-divider"><span>Your Costs — Per Item</span></div>
+
+    <!-- Item cost -->
+    <div class="field-group">
+      <div class="field-label">
+        Item Cost
+        <span class="field-hint">what you paid per unit</span>
+      </div>
+      <div class="field-row col2">
+        <div>
+          <div class="field-label" style="font-size:9px;margin-bottom:4px">Standard (S–XL)</div>
+          <div class="input-wrap has-prefix">
+            <span class="input-prefix">$</span>
+            <input type="number" id="cost-std" placeholder="0.00" step="0.01" min="0">
+          </div>
+        </div>
+        <div>
+          <div class="field-label" style="font-size:9px;margin-bottom:4px">Plus Size (2X+)</div>
+          <div class="input-wrap has-prefix">
+            <span class="input-prefix">$</span>
+            <input type="number" id="cost-plus" placeholder="0.00" step="0.01" min="0">
+          </div>
+        </div>
+      </div>
+      <!-- Size split for bulk -->
+      <div id="size-split" style="display:none; margin-top:8px;">
+        <div class="field-label" style="font-size:9px;margin-bottom:4px">How many are 2X+ in this order?</div>
+        <div class="input-wrap">
+          <input type="number" id="qty-plus" placeholder="0" min="0">
+        </div>
+      </div>
+    </div>
+
+    <!-- Transfer cost -->
+    <div class="field-group">
+      <div class="field-label">DTF Transfer Cost</div>
+      <div class="input-wrap has-prefix">
+        <span class="input-prefix">$</span>
+        <input type="number" id="cost-transfer" placeholder="0.00" step="0.01" min="0">
+      </div>
+    </div>
+
+    <!-- Materials -->
+    <div class="field-group">
+      <div class="field-label">
+        Materials Per Item
+        <span class="field-hint">bags, tags, tissue, etc.</span>
+      </div>
+      <div class="input-wrap has-prefix">
+        <span class="input-prefix">$</span>
+        <input type="number" id="cost-materials" placeholder="0.00" step="0.01" min="0">
+      </div>
+    </div>
+
+    <div class="section-divider"><span>Shipping & Fees</span></div>
+
+    <div class="field-row col2" style="margin-bottom:14px">
+      <div>
+        <div class="field-label" style="font-size:9px;margin-bottom:4px">Shipping Cost to You</div>
+        <div class="input-wrap has-prefix">
+          <span class="input-prefix">$</span>
+          <input type="number" id="cost-ship-out" placeholder="0.00" step="0.01" min="0">
+        </div>
+      </div>
+      <div>
+        <div class="field-label" style="font-size:9px;margin-bottom:4px">Charged to Customer</div>
+        <div class="input-wrap has-prefix">
+          <span class="input-prefix">$</span>
+          <input type="number" id="cost-ship-in" placeholder="0.00" step="0.01" min="0">
+        </div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <div class="field-label">
+        Platform / Payment Fee
+        <span class="field-hint">Shopify, PayPal, Facebook, etc.</span>
+      </div>
+      <div class="input-wrap has-suffix">
+        <input type="number" id="fee-pct" placeholder="3.0" step="0.1" min="0" max="50">
+        <span class="input-suffix">%</span>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <div class="field-label">
+        Other / Misc Cost
+        <span class="field-hint">anything else for this job</span>
+      </div>
+      <div class="input-wrap has-prefix">
+        <span class="input-prefix">$</span>
+        <input type="number" id="cost-misc" placeholder="0.00" step="0.01" min="0">
+      </div>
+    </div>
+
+    <button class="calc-btn" onclick="calculate()">Calculate Pricing</button>
+  </div>
+
+  <!-- Results -->
+  <div class="results" id="results">
+
+    <div class="results-header">Cost Breakdown</div>
+
+    <div class="cost-summary" id="cost-summary"></div>
+
+    <div class="price-table-label">Pricing Options — Tap to select</div>
+    <div class="price-grid" id="price-grid"></div>
+
+    <div class="bulk-totals" id="bulk-totals" style="display:none"></div>
+
+    <button class="reset-btn" onclick="resetCalc()">↺ Start New Quote</button>
+  </div>
+
+  <div class="footer">Prices shown are per item unless in Bulk mode · For internal use only</div>
+
+</div>
+
+<script>
+let mode = 'single';
+let channel = 'online';
+
+function setMode(m) {
+  mode = m;
+  document.getElementById('btn-single').classList.toggle('active', m === 'single');
+  document.getElementById('btn-bulk').classList.toggle('active', m === 'bulk');
+  document.getElementById('qty-group').style.display = m === 'bulk' ? 'block' : 'none';
+  document.getElementById('size-split').style.display = m === 'bulk' ? 'block' : 'none';
+  document.getElementById('results').classList.remove('visible');
+}
+
+function setChannel(c) {
+  channel = c;
+  document.getElementById('btn-online').classList.toggle('active', c === 'online');
+  document.getElementById('btn-event').classList.toggle('active', c === 'event');
+  document.getElementById('tax-group').style.display = c === 'event' ? 'block' : 'none';
+  document.getElementById('results').classList.remove('visible');
+}
+
+function v(id, fallback = 0) {
+  const val = parseFloat(document.getElementById(id).value);
+  return isNaN(val) ? fallback : val;
+}
+
+function fmt(n) {
+  return '$' + Math.abs(n).toFixed(2);
+}
+
+function fmtPct(n) {
+  return n.toFixed(1) + '%';
+}
+
+function calculate() {
+  const qty       = mode === 'bulk' ? Math.max(1, v('qty', 1)) : 1;
+  const qtyPlus   = mode === 'bulk' ? Math.min(v('qty-plus', 0), qty) : 0;
+  const qtyStd    = qty - qtyPlus;
+
+  const costStd      = v('cost-std');
+  const costPlus     = v('cost-plus', costStd);
+  const costTransfer = v('cost-transfer');
+  const costMat      = v('cost-materials');
+  const costShipOut  = v('cost-ship-out');
+  const costShipIn   = v('cost-ship-in');
+  const feePct       = v('fee-pct', 0) / 100;
+  const costMisc     = v('cost-misc');
+
+  // Tax: only in event/in-person mode, built into price
+  const taxPct = channel === 'event' ? v('tax-rate', 7) / 100 : 0;
+
+  // Average item cost accounting for size mix
+  const avgItemCost = qty > 0
+    ? (qtyStd * costStd + qtyPlus * costPlus) / qty
+    : costStd;
+
+  // Per-item base cost (before fee/tax which depend on price)
+  const basePerItem = avgItemCost + costTransfer + costMat + (costShipOut / qty) + (costMisc / qty) - (costShipIn / qty);
+
+  // Build cost summary
+  const rows = [
+    { label: 'Item cost (avg)',    val: avgItemCost },
+    { label: 'DTF Transfer',       val: costTransfer },
+    { label: 'Materials',          val: costMat },
+    { label: 'Shipping cost',      val: costShipOut / qty },
+    { label: 'Shipping (charged)', val: -(costShipIn / qty), note: true },
+    { label: 'Misc / Other',       val: costMisc / qty },
+  ].filter(r => r.val !== 0);
+
+  let summaryHtml = rows.map(r => `
+    <div class="cost-row">
+      <span class="cost-label">${r.label}</span>
+      <span class="cost-value" style="${r.note ? 'color:var(--green)' : ''}">${r.note ? '-' : ''}${fmt(r.val)}</span>
+    </div>`).join('');
+
+  summaryHtml += `
+    <div class="cost-row total">
+      <span class="cost-label">Base cost per item</span>
+      <span class="cost-value">${fmt(basePerItem)}</span>
+    </div>`;
+
+  if (feePct > 0) {
+    summaryHtml += `
+      <div class="cost-row" style="padding-top:2px">
+        <span class="cost-label" style="font-size:11px;color:var(--text-dim)">+ Platform fee (${(feePct*100).toFixed(1)}%) on sell price</span>
+        <span class="cost-value" style="font-size:11px;color:var(--text-dim)">varies</span>
+      </div>`;
+  }
+
+  if (taxPct > 0) {
+    summaryHtml += `
+      <div class="cost-row" style="padding-top:2px">
+        <span class="cost-label" style="font-size:11px;color:var(--orange)">+ Sales tax (${(taxPct*100).toFixed(2)}%) built into price</span>
+        <span class="cost-value" style="font-size:11px;color:var(--orange)">varies</span>
+      </div>`;
+  }
+
+  document.getElementById('cost-summary').innerHTML = summaryHtml;
+
+  // Generate 5 price points
+  // For event mode: price shown is what customer pays (tax-inclusive)
+  // Tax portion = price * taxPct / (1 + taxPct) — reverse calc since tax is inside price
+  const breakEven = basePerItem / (1 - feePct - (taxPct / (1 + taxPct)));
+  const step = Math.max(1, Math.round(breakEven * 0.1));
+  const pricePoints = [];
+  const startPrice = Math.ceil(breakEven + step * 0.5);
+  for (let i = 0; i < 5; i++) {
+    pricePoints.push(parseFloat((startPrice + step * i).toFixed(2)));
+  }
+
+  // Build price cards
+  let gridHtml = '';
+  pricePoints.forEach((price, i) => {
+    // Tax portion buried in price (event mode)
+    const taxPortion = taxPct > 0 ? (price * taxPct) / (1 + taxPct) : 0;
+    const revenueAfterTax = price - taxPortion;
+    const totalCostWithFee = basePerItem + (revenueAfterTax * feePct);
+    const profit = revenueAfterTax - totalCostWithFee;
+    const margin = (profit / revenueAfterTax) * 100;
+
+    let cardClass = 'low';
+    let badge = '';
+    if (margin >= 40) { cardClass = 'great'; }
+    else if (margin >= 25) { cardClass = 'good'; }
+
+    if (margin >= 35 && margin < 50 && !pricePoints.some((p, j) => {
+      const tp = taxPct > 0 ? (p * taxPct) / (1 + taxPct) : 0;
+      const rat = p - tp;
+      const m = ((rat - (basePerItem + rat * feePct)) / rat) * 100;
+      return j < i && m >= 35 && m < 50;
+    })) {
+      badge = '<div class="pc-badge">Sweet Spot</div>';
+    }
+
+    // Show tax note on card if event mode
+    const taxNote = taxPct > 0 ? `<div style="font-size:9px;color:var(--orange);margin-top:2px">incl. ${(taxPct*100).toFixed(2)}% tax</div>` : '';
+
+    gridHtml += `
+      <div class="price-card ${cardClass}" onclick="selectPrice(${price}, ${profit.toFixed(2)}, ${margin.toFixed(1)}, ${taxPortion.toFixed(2)})">
+        ${badge}
+        <div class="pc-price">${fmt(price)}</div>
+        ${taxNote}
+        <div class="pc-profit ${profit >= 0 ? 'pos' : 'neg'}">${profit >= 0 ? '+' : ''}${fmt(profit)}</div>
+        <div class="pc-margin">${fmtPct(margin)}</div>
+      </div>`;
+  });
+
+  document.getElementById('price-grid').innerHTML = gridHtml;
+
+  // Bulk totals
+  const bulkEl = document.getElementById('bulk-totals');
+  if (mode === 'bulk' && qty > 1) {
+    // Show bulk totals for the sweet spot price
+    const sweetPrice = pricePoints.find(p => {
+      const m = ((p - (basePerItem + p * feePct)) / p) * 100;
+      return m >= 35;
+    }) || pricePoints[2];
+    const sweetProfit = (sweetPrice - basePerItem - sweetPrice * feePct) * qty;
+    const totalRevenue = sweetPrice * qty;
+    const totalCost = (basePerItem + sweetPrice * feePct) * qty;
+
+    bulkEl.style.display = 'block';
+    bulkEl.innerHTML = `
+      <div style="font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px">Bulk Order Totals · ${qty} items</div>
+      <div class="bulk-row">
+        <span class="bulk-label">Total revenue</span>
+        <span class="bulk-value gold">${fmt(totalRevenue)}</span>
+      </div>
+      <div class="bulk-row">
+        <span class="bulk-label">Total cost</span>
+        <span class="bulk-value">${fmt(totalCost)}</span>
+      </div>
+      <div class="bulk-row highlight">
+        <span class="bulk-label">Total profit (est.)</span>
+        <span class="bulk-value green">+${fmt(sweetProfit)}</span>
+      </div>
+      <div style="font-size:10px;color:var(--text-dim);margin-top:6px;font-style:italic">Based on sweet spot price · tap any card above to recalculate</div>`;
+  } else {
+    bulkEl.style.display = 'none';
+  }
+
+  document.getElementById('results').classList.add('visible');
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function selectPrice(price, profit, margin, taxPortion) {
+  taxPortion = taxPortion || 0;
+  const qty = mode === 'bulk' ? Math.max(1, v('qty', 1)) : 1;
+  const bulkEl = document.getElementById('bulk-totals');
+
+  if (mode === 'bulk' && qty > 1) {
+    const totalRevenue = price * qty;
+    const totalProfit = profit * qty;
+    const totalTax = taxPortion * qty;
+    const totalCost = totalRevenue - totalProfit - totalTax;
+    const taxLine = taxPortion > 0 ? `
+      <div class="bulk-row">
+        <span class="bulk-label" style="color:var(--orange)">Sales tax (to remit)</span>
+        <span class="bulk-value" style="color:var(--orange);font-size:13px">${fmt(totalTax)}</span>
+      </div>` : '';
+    bulkEl.style.display = 'block';
+    bulkEl.innerHTML = `
+      <div style="font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px">Bulk Order Totals · ${qty} items @ ${fmt(price)}/ea</div>
+      <div class="bulk-row">
+        <span class="bulk-label">Total collected</span>
+        <span class="bulk-value gold">${fmt(totalRevenue)}</span>
+      </div>
+      ${taxLine}
+      <div class="bulk-row">
+        <span class="bulk-label">Total cost</span>
+        <span class="bulk-value">${fmt(totalCost)}</span>
+      </div>
+      <div class="bulk-row highlight">
+        <span class="bulk-label">Total profit</span>
+        <span class="bulk-value green">+${fmt(totalProfit)}</span>
+      </div>
+      <div class="bulk-row">
+        <span class="bulk-label">Margin</span>
+        <span class="bulk-value" style="color:var(--gold)">${fmtPct(margin)}</span>
+      </div>`;
+  }
+}
+
+function resetCalc() {
+  document.querySelectorAll('input').forEach(i => i.value = '');
+  document.getElementById('results').classList.remove('visible');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
