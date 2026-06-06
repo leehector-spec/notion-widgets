@@ -721,11 +721,9 @@ input.error, select.error, textarea.error {
 
 <script>
 // ═══════════════════════════════════════════════════════
-// NOTION CONFIG
-// Data source ID for the Customer Orders database
+// MAKE WEBHOOK — receives form data and creates Notion card
 // ═══════════════════════════════════════════════════════
-const NOTION_DS_ID = 'fe6c099a-5481-4ac7-aac3-b9a65c03e9bd';
-const NOTION_API   = 'https://api.anthropic.com/v1/messages';
+const WEBHOOK_URL = 'https://hook.us2.make.com/k3gh7ir3n3d3rc9lqz93jxume73x5jyt';
 
 // ── Color data by brand ──
 // Add more colors as you stock them!
@@ -902,36 +900,20 @@ async function submitForm() {
   });
 
   try {
-    const res = await fetch(NOTION_API, {
+    const res = await fetch(WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{
-          role: 'user',
-          content: `Create a new page in the Notion Customer Orders database (data source ID: ${NOTION_DS_ID}) with these properties: ${JSON.stringify(properties)}. Return just the Order ID number that was assigned.`
-        }],
-        mcp_servers: [{
-          type: 'url',
-          url: 'https://mcp.notion.com/mcp',
-          name: 'notion'
-        }]
-      })
+      body: JSON.stringify(properties)
     });
 
-    const data = await res.json();
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-    if (data.content && data.content.length > 0) {
-      const text = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
-      document.getElementById('form-wrap').style.display = 'none';
-      document.getElementById('success-state').classList.add('visible');
-      const idMatch = text.match(/SMP-?\d+|\d+/);
-      document.getElementById('order-id-display').textContent =
-        idMatch ? `Order ID: SMP-${idMatch[0].replace(/\D/g,'')}` : 'Order submitted successfully!';
-    } else {
-      throw new Error('No response content');
-    }
+    // Success
+    document.getElementById('form-wrap').style.display = 'none';
+    document.getElementById('success-state').classList.add('visible');
+    document.getElementById('order-id-display').textContent =
+      `Order submitted — we'll be in touch soon!`;
+
   } catch (err) {
     console.error(err);
     document.getElementById('form-wrap').style.display = 'none';
