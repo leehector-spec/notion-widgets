@@ -493,19 +493,63 @@ input::placeholder { color: var(--text-dim); opacity: 0.5; }
             <input type="number" id="cost-std" placeholder="0.00" step="0.01" min="0">
           </div>
         </div>
-        <div>
-          <div class="field-label" style="font-size:9px;margin-bottom:4px">Plus Size (2X+)</div>
-          <div class="input-wrap has-prefix">
-            <span class="input-prefix">$</span>
-            <input type="number" id="cost-plus" placeholder="0.00" step="0.01" min="0">
+        <div id="single-size-group">
+          <div class="field-label" style="font-size:9px;margin-bottom:4px">Size of This Item</div>
+          <select id="single-size" style="width:100%;padding:9px 28px 9px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);outline:none;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236a5a45' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;">
+            <option value="std">S / M / L / XL</option>
+            <option value="2xl">2XL</option>
+            <option value="3xl">3XL</option>
+            <option value="4xl">4XL+</option>
+          </select>
+        </div>
+      </div>
+      <!-- Upcharges -->
+      <div style="margin-top:10px">
+        <div class="field-label" style="font-size:9px;margin-bottom:6px">Plus Size Upcharges <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-dim)">added on top of standard cost</span></div>
+        <div class="field-row col3">
+          <div>
+            <div class="field-label" style="font-size:9px;margin-bottom:4px;color:var(--orange)">2XL +$</div>
+            <div class="input-wrap has-prefix">
+              <span class="input-prefix" style="color:var(--orange)">$</span>
+              <input type="number" id="upcharge-2xl" placeholder="0.00" step="0.01" min="0">
+            </div>
+          </div>
+          <div>
+            <div class="field-label" style="font-size:9px;margin-bottom:4px;color:var(--orange)">3XL +$</div>
+            <div class="input-wrap has-prefix">
+              <span class="input-prefix" style="color:var(--orange)">$</span>
+              <input type="number" id="upcharge-3xl" placeholder="0.00" step="0.01" min="0">
+            </div>
+          </div>
+          <div>
+            <div class="field-label" style="font-size:9px;margin-bottom:4px;color:var(--orange)">4XL +$</div>
+            <div class="input-wrap has-prefix">
+              <span class="input-prefix" style="color:var(--orange)">$</span>
+              <input type="number" id="upcharge-4xl" placeholder="0.00" step="0.01" min="0">
+            </div>
           </div>
         </div>
       </div>
       <!-- Size split for bulk -->
-      <div id="size-split" style="display:none; margin-top:8px;">
-        <div class="field-label" style="font-size:9px;margin-bottom:4px">How many are 2X+ in this order?</div>
-        <div class="input-wrap">
-          <input type="number" id="qty-plus" placeholder="0" min="0">
+      <div id="size-split" style="display:none; margin-top:10px;">
+        <div class="field-label" style="font-size:9px;margin-bottom:6px">Size Quantities in This Order</div>
+        <div class="field-row col2">
+          <div>
+            <div class="field-label" style="font-size:9px;margin-bottom:4px">Qty S–XL (standard)</div>
+            <input type="number" id="qty-std-bulk" placeholder="0" min="0">
+          </div>
+          <div>
+            <div class="field-label" style="font-size:9px;margin-bottom:4px">Qty 2XL</div>
+            <input type="number" id="qty-2xl-bulk" placeholder="0" min="0">
+          </div>
+          <div>
+            <div class="field-label" style="font-size:9px;margin-bottom:4px">Qty 3XL</div>
+            <input type="number" id="qty-3xl-bulk" placeholder="0" min="0">
+          </div>
+          <div>
+            <div class="field-label" style="font-size:9px;margin-bottom:4px">Qty 4XL+</div>
+            <input type="number" id="qty-4xl-bulk" placeholder="0" min="0">
+          </div>
         </div>
       </div>
     </div>
@@ -604,6 +648,7 @@ function setMode(m) {
   document.getElementById('btn-bulk').classList.toggle('active', m === 'bulk');
   document.getElementById('qty-group').style.display = m === 'bulk' ? 'block' : 'none';
   document.getElementById('size-split').style.display = m === 'bulk' ? 'block' : 'none';
+  document.getElementById('single-size-group').style.display = m === 'single' ? 'block' : 'none';
   document.getElementById('results').classList.remove('visible');
 }
 
@@ -629,45 +674,74 @@ function fmtPct(n) {
 }
 
 function calculate() {
-  const qty       = mode === 'bulk' ? Math.max(1, v('qty', 1)) : 1;
-  const qtyPlus   = mode === 'bulk' ? Math.min(v('qty-plus', 0), qty) : 0;
-  const qtyStd    = qty - qtyPlus;
+  // qty: total items — in bulk mode pulled from the main qty field
+  // In bulk mode with size breakdown, total is sum of all size qtys
+  const qtyStdB  = mode === 'bulk' ? v('qty-std-bulk', 0) : 0;
+  const qty2xlB  = mode === 'bulk' ? v('qty-2xl-bulk', 0) : 0;
+  const qty3xlB  = mode === 'bulk' ? v('qty-3xl-bulk', 0) : 0;
+  const qty4xlB  = mode === 'bulk' ? v('qty-4xl-bulk', 0) : 0;
+  const sizeTotal = qtyStdB + qty2xlB + qty3xlB + qty4xlB;
+  const qty = mode === 'bulk'
+    ? (sizeTotal > 0 ? sizeTotal : Math.max(1, v('qty', 1)))
+    : 1;
 
-  const costStd      = v('cost-std');
-  const costPlusRaw  = document.getElementById('cost-plus').value.trim();
-  const costPlus     = costPlusRaw !== '' ? v('cost-plus') : costStd;
-  const costTransfer = v('cost-transfer');
-  const costMat      = v('cost-materials');
-  const costShipOut  = v('cost-ship-out');
-  const costShipIn   = v('cost-ship-in');
-  const feePct       = v('fee-pct', 0) / 100;
-  const costMisc     = v('cost-misc');
+  const costStd       = v('cost-std');
+  const upcharge2xl   = v('upcharge-2xl', 0);
+  const upcharge3xl   = v('upcharge-3xl', 0);
+  const upcharge4xl   = v('upcharge-4xl', 0);
+  const costTransfer  = v('cost-transfer');
+  const costMat       = v('cost-materials');
+  const costShipOut   = v('cost-ship-out');
+  const costShipIn    = v('cost-ship-in');
+  const feePct        = v('fee-pct', 0) / 100;
+  const costMisc      = v('cost-misc');
 
   // Tax: only in event/in-person mode, built into price
   const taxPct = channel === 'event' ? v('tax-rate', 7) / 100 : 0;
 
-  // Average item cost: single mode uses plus cost directly if entered (this IS a plus size item)
-  // Bulk mode uses weighted average based on qty breakdown
+  // Compute cost per size tier (standard + upcharge)
+  const cost2xl = costStd + upcharge2xl;
+  const cost3xl = costStd + upcharge3xl;
+  const cost4xl = costStd + upcharge4xl;
+
+  // Average item cost:
+  // Single mode — use the selected size to pick the right cost
+  // Bulk mode — weighted average across all size qty inputs
   let avgItemCost;
   if (mode === 'bulk') {
-    avgItemCost = qty > 0
-      ? (qtyStd * costStd + qtyPlus * costPlus) / qty
-      : costStd;
+    const qtyStdB  = v('qty-std-bulk', 0);
+    const qty2xlB  = v('qty-2xl-bulk', 0);
+    const qty3xlB  = v('qty-3xl-bulk', 0);
+    const qty4xlB  = v('qty-4xl-bulk', 0);
+    const totalB   = qtyStdB + qty2xlB + qty3xlB + qty4xlB;
+    if (totalB > 0) {
+      avgItemCost = (qtyStdB * costStd + qty2xlB * cost2xl + qty3xlB * cost3xl + qty4xlB * cost4xl) / totalB;
+    } else {
+      avgItemCost = costStd; // fallback if no qty breakdown entered
+    }
   } else {
-    avgItemCost = costPlusRaw !== '' ? costPlus : costStd;
+    // Single item — use the size picker
+    const singleSize = document.getElementById('single-size').value;
+    if (singleSize === '2xl')      avgItemCost = cost2xl;
+    else if (singleSize === '3xl') avgItemCost = cost3xl;
+    else if (singleSize === '4xl') avgItemCost = cost4xl;
+    else                           avgItemCost = costStd;
   }
 
   // Per-item base cost (before fee/tax which depend on price)
   const basePerItem = avgItemCost + costTransfer + costMat + (costShipOut / qty) + (costMisc / qty) - (costShipIn / qty);
 
   // Build cost summary
+  const sizeLabel = mode === 'single'
+    ? { std: 'S–XL', '2xl': '2XL', '3xl': '3XL', '4xl': '4XL+' }[document.getElementById('single-size').value]
+    : 'avg mix';
   const rows = [
-    { label: 'Item cost (avg)',    val: avgItemCost },
-    { label: 'DTF Transfer',       val: costTransfer },
-    { label: 'Materials',          val: costMat },
-    { label: 'Shipping cost',      val: costShipOut / qty },
-    { label: 'Shipping (charged)', val: -(costShipIn / qty), note: true },
-    { label: 'Misc / Other',       val: costMisc / qty },
+    { label: `Item cost (${sizeLabel})`, val: avgItemCost },
+    { label: 'DTF Transfer',              val: costTransfer },
+    { label: 'Materials',                 val: costMat },
+    { label: 'Shipping cost',             val: costShipOut / qty },
+    { label: 'Shipping (charged)',         val: -(costShipIn / qty), note: true },
+    { label: 'Misc / Other',              val: costMisc / qty },
   ].filter(r => r.val !== 0);
 
   let summaryHtml = rows.map(r => `
