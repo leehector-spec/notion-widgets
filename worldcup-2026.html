@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 FIFA World Cup</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;500;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+body {
+  background: transparent;
+  font-family: 'Barlow Condensed', sans-serif;
+  display: flex;
+  justify-content: center;
+  padding: 10px;
+}
+
+.widget {
+  width: 100%;
+  max-width: 520px;
+  background: #0a0e1a;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+  border: 1px solid rgba(212,175,55,0.2);
+}
+
+/* ── Header ── */
+.header {
+  background: linear-gradient(135deg, #0d1b2a 0%, #1a2744 50%, #0d1b2a 100%);
+  padding: 18px 20px 14px;
+  border-bottom: 2px solid #d4af37;
+  position: relative;
+  overflow: hidden;
+}
+.header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 20px,
+    rgba(212,175,55,0.03) 20px,
+    rgba(212,175,55,0.03) 21px
+  );
+}
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+.trophy {
+  font-size: 28px;
+  filter: drop-shadow(0 0 8px rgba(212,175,55,0.5));
+}
+.title-block { text-align: center; flex: 1; }
+.title-main {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px;
+  color: #d4af37;
+  letter-spacing: 3px;
+  line-height: 1;
+  text-shadow: 0 0 20px rgba(212,175,55,0.3);
+}
+.title-sub {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  color: #7a9bc4;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+.host-flags { font-size: 18px; letter-spacing: 4px; }
+
+/* ── Group tabs ── */
+.group-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 12px 16px 8px;
+  background: #0d1220;
+  border-bottom: 1px solid rgba(212,175,55,0.15);
+}
+.tab {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: #4a6080;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 3px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tab:hover { color: #d4af37; border-color: rgba(212,175,55,0.3); }
+.tab.active {
+  color: #0a0e1a;
+  background: #d4af37;
+  border-color: #d4af37;
+}
+
+/* ── Content area ── */
+.content { padding: 16px; }
+
+.group-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  color: #d4af37;
+  letter-spacing: 3px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.group-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(212,175,55,0.4), transparent);
+}
+
+/* ── Standings table ── */
+.standings {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+.standings th {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #4a6080;
+  padding: 6px 6px 6px 0;
+  text-align: center;
+  border-bottom: 1px solid rgba(212,175,55,0.15);
+}
+.standings th:first-child { text-align: left; padding-left: 4px; }
+.standings td {
+  padding: 0;
+  text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.standings td:first-child { text-align: left; }
+
+.team-row {
+  transition: background 0.15s;
+}
+.team-row:hover { background: rgba(255,255,255,0.04); }
+.team-row.qualified { background: rgba(212,175,55,0.06); }
+
+.team-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 4px;
+}
+.team-img {
+  width: 28px;
+  height: 20px;
+  object-fit: cover;
+  border-radius: 2px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: #1a2744;
+  flex-shrink: 0;
+}
+.team-flag-placeholder {
+  width: 28px;
+  height: 20px;
+  border-radius: 2px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: #1a2744;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.team-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #c8d8e8;
+  white-space: nowrap;
+}
+.team-name.host { color: #d4af37; }
+
+.stat-cell {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  color: #6a8aaa;
+  padding: 7px 4px;
+  min-width: 28px;
+}
+.pts-cell {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 16px;
+  color: #d4af37;
+  padding: 7px 6px;
+}
+.qualify-marker {
+  width: 3px;
+  height: 100%;
+  background: #d4af37;
+}
+
+/* ── Matches ── */
+.matches-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 16px;
+  color: #7a9bc4;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.matches-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(122,155,196,0.2);
+}
+
+.match-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 4px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+  transition: border-color 0.2s;
+}
+.match-card:hover { border-color: rgba(212,175,55,0.2); }
+.match-card.played { border-left: 2px solid #d4af37; }
+.match-card.upcoming { border-left: 2px solid #2a4060; }
+
+.match-team {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #c8d8e8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.match-team.away { justify-content: flex-end; text-align: right; }
+.match-team-flag { font-size: 16px; }
+
+.match-center { text-align: center; }
+.match-score {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  color: #d4af37;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+.match-vs {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px;
+  color: #2a4060;
+  letter-spacing: 2px;
+}
+.match-date {
+  font-family: 'Barlow', sans-serif;
+  font-size: 10px;
+  color: #4a6080;
+  letter-spacing: 0.05em;
+  margin-top: 3px;
+}
+.match-md {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 10px;
+  color: #3a5070;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+
+/* ── Footer ── */
+.footer {
+  padding: 10px 16px;
+  background: #060910;
+  border-top: 1px solid rgba(212,175,55,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: #4a6080;
+  letter-spacing: 0.05em;
+}
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.legend-dot.q { background: #d4af37; }
+.legend-dot.u { background: #2a4060; }
+.update-note {
+  font-size: 10px;
+  color: #2a4060;
+  font-style: italic;
+}
+</style>
+</head>
+<body>
+<div class="widget">
+  <div class="header">
+    <div class="header-top">
+      <div class="trophy">🏆</div>
+      <div class="title-block">
+        <div class="title-main">FIFA World Cup 2026</div>
+        <div class="title-sub">Canada · Mexico · United States</div>
+      </div>
+      <div class="host-flags">🇨🇦🇲🇽🇺🇸</div>
+    </div>
+  </div>
+
+  <div class="group-tabs" id="group-tabs"></div>
+
+  <div class="content" id="content"></div>
+
+  <div class="footer">
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot q"></div> Advance</div>
+      <div class="legend-item"><div class="legend-dot u"></div> Upcoming</div>
+    </div>
+    <div class="update-note">Update W/D/L/GF/GA after each match</div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// GROUP DATA — update W, D, L, GF, GA after each match
+// img: paste a jersey image URL here when you find one!
+// ═══════════════════════════════════════════════
+const groups = {
+  A: {
+    teams: [
+      { name: "Mexico",      flag: "🇲🇽", host: true,  img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "South Africa",flag: "🇿🇦", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "South Korea", flag: "🇰🇷", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Czechia",     flag: "🇨🇿", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+    ],
+    matches: [
+      { home:"Mexico",       away:"South Africa", homeScore:null, awayScore:null, date:"Jun 11", time:"3pm ET",  md:"MD1" },
+      { home:"South Korea",  away:"Czechia",      homeScore:null, awayScore:null, date:"Jun 11", time:"10pm ET", md:"MD1" },
+      { home:"Mexico",       away:"South Korea",  homeScore:null, awayScore:null, date:"Jun 17", time:"TBD",     md:"MD2" },
+      { home:"Czechia",      away:"South Africa", homeScore:null, awayScore:null, date:"Jun 17", time:"TBD",     md:"MD2" },
+      { home:"Mexico",       away:"Czechia",      homeScore:null, awayScore:null, date:"Jun 24", time:"TBD",     md:"MD3" },
+      { home:"South Africa", away:"South Korea",  homeScore:null, awayScore:null, date:"Jun 24", time:"TBD",     md:"MD3" },
+    ]
+  },
+  B: {
+    teams: [
+      { name: "Canada",      flag: "🇨🇦", host: true,  img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Bosnia-Herz", flag: "🇧🇦", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Qatar",       flag: "🇶🇦", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Switzerland", flag: "🇨🇭", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+    ],
+    matches: [
+      { home:"Canada",      away:"Bosnia-Herz",  homeScore:null, awayScore:null, date:"Jun 12", time:"3pm ET",  md:"MD1" },
+      { home:"Qatar",       away:"Switzerland",  homeScore:null, awayScore:null, date:"Jun 13", time:"3pm ET",  md:"MD1" },
+      { home:"Canada",      away:"Qatar",        homeScore:null, awayScore:null, date:"Jun 18", time:"TBD",     md:"MD2" },
+      { home:"Switzerland", away:"Bosnia-Herz",  homeScore:null, awayScore:null, date:"Jun 18", time:"TBD",     md:"MD2" },
+      { home:"Canada",      away:"Switzerland",  homeScore:null, awayScore:null, date:"Jun 24", time:"TBD",     md:"MD3" },
+      { home:"Bosnia-Herz", away:"Qatar",        homeScore:null, awayScore:null, date:"Jun 24", time:"TBD",     md:"MD3" },
+    ]
+  },
+  C: {
+    teams: [
+      { name: "Brazil",   flag: "🇧🇷", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Morocco",  flag: "🇲🇦", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Haiti",    flag: "🇭🇹", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Scotland", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+    ],
+    matches: [
+      { home:"Brazil",   away:"Morocco",  homeScore:null, awayScore:null, date:"Jun 13", time:"6pm ET",  md:"MD1" },
+      { home:"Haiti",    away:"Scotland", homeScore:null, awayScore:null, date:"Jun 14", time:"TBD",     md:"MD1" },
+      { home:"Brazil",   away:"Haiti",    homeScore:null, awayScore:null, date:"Jun 18", time:"TBD",     md:"MD2" },
+      { home:"Scotland", away:"Morocco",  homeScore:null, awayScore:null, date:"Jun 19", time:"TBD",     md:"MD2" },
+      { home:"Brazil",   away:"Scotland", homeScore:null, awayScore:null, date:"Jun 25", time:"TBD",     md:"MD3" },
+      { home:"Morocco",  away:"Haiti",    homeScore:null, awayScore:null, date:"Jun 25", time:"TBD",     md:"MD3" },
+    ]
+  },
+  D: {
+    teams: [
+      { name: "USA",      flag: "🇺🇸", host: true,  img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Paraguay", flag: "🇵🇾", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Australia",flag: "🇦🇺", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Turkey",   flag: "🇹🇷", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+    ],
+    matches: [
+      { home:"USA",      away:"Paraguay",  homeScore:null, awayScore:null, date:"Jun 12", time:"9pm ET",  md:"MD1" },
+      { home:"Australia",away:"Turkey",    homeScore:null, awayScore:null, date:"Jun 13", time:"TBD",     md:"MD1" },
+      { home:"USA",      away:"Australia", homeScore:null, awayScore:null, date:"Jun 19", time:"TBD",     md:"MD2" },
+      { home:"Turkey",   away:"Paraguay",  homeScore:null, awayScore:null, date:"Jun 19", time:"TBD",     md:"MD2" },
+      { home:"USA",      away:"Turkey",    homeScore:null, awayScore:null, date:"Jun 25", time:"TBD",     md:"MD3" },
+      { home:"Paraguay", away:"Australia", homeScore:null, awayScore:null, date:"Jun 25", time:"TBD",     md:"MD3" },
+    ]
+  },
+  E: {
+    teams: [
+      { name: "Germany",    flag: "🇩🇪", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Curacao",    flag: "🇨🇼", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Ivory Coast",flag: "🇨🇮", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Ecuador",    flag: "🇪🇨", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+    ],
+    matches: [
+      { home:"Germany",    away:"Curacao",     homeScore:null, awayScore:null, date:"Jun 14", time:"TBD", md:"MD1" },
+      { home:"Ivory Coast",away:"Ecuador",     homeScore:null, awayScore:null, date:"Jun 14", time:"TBD", md:"MD1" },
+      { home:"Germany",    away:"Ivory Coast", homeScore:null, awayScore:null, date:"Jun 20", time:"TBD", md:"MD2" },
+      { home:"Ecuador",    away:"Curacao",     homeScore:null, awayScore:null, date:"Jun 20", time:"TBD", md:"MD2" },
+      { home:"Germany",    away:"Ecuador",     homeScore:null, awayScore:null, date:"Jun 26", time:"TBD", md:"MD3" },
+      { home:"Curacao",    away:"Ivory Coast", homeScore:null, awayScore:null, date:"Jun 26", time:"TBD", md:"MD3" },
+    ]
+  },
+  F: {
+    teams: [
+      { name: "Netherlands",flag: "🇳🇱", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Japan",      flag: "🇯🇵", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Sweden",     flag: "🇸🇪", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Tunisia",    flag: "🇹🇳", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+    ],
+    matches: [
+      { home:"Netherlands",away:"Japan",       homeScore:null, awayScore:null, date:"Jun 14", time:"TBD", md:"MD1" },
+      { home:"Sweden",     away:"Tunisia",     homeScore:null, awayScore:null, date:"Jun 15", time:"TBD", md:"MD1" },
+      { home:"Netherlands",away:"Sweden",      homeScore:null, awayScore:null, date:"Jun 20", time:"TBD", md:"MD2" },
+      { home:"Tunisia",    away:"Japan",       homeScore:null, awayScore:null, date:"Jun 21", time:"TBD", md:"MD2" },
+      { home:"Netherlands",away:"Tunisia",     homeScore:null, awayScore:null, date:"Jun 26", time:"TBD", md:"MD3" },
+      { home:"Japan",      away:"Sweden",      homeScore:null, awayScore:null, date:"Jun 26", time:"TBD", md:"MD3" },
+    ]
+  },
+  G: {
+    teams: [
+      { name: "Belgium",    flag: "🇧🇪", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Egypt",      flag: "🇪🇬", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Iran",       flag: "🇮🇷", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "New Zealand",flag: "🇳🇿", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+    ],
+    matches: [
+      { home:"Belgium",    away:"Egypt",       homeScore:null, awayScore:null, date:"Jun 15", time:"6pm ET",  md:"MD1" },
+      { home:"Iran",       away:"New Zealand", homeScore:null, awayScore:null, date:"Jun 15", time:"TBD",     md:"MD1" },
+      { home:"Belgium",    away:"Iran",        homeScore:null, awayScore:null, date:"Jun 21", time:"TBD",     md:"MD2" },
+      { home:"New Zealand",away:"Egypt",       homeScore:null, awayScore:null, date:"Jun 21", time:"TBD",     md:"MD2" },
+      { home:"Belgium",    away:"New Zealand", homeScore:null, awayScore:null, date:"Jun 26", time:"TBD",     md:"MD3" },
+      { home:"Egypt",      away:"Iran",        homeScore:null, awayScore:null, date:"Jun 26", time:"TBD",     md:"MD3" },
+    ]
+  },
+  H: {
+    teams: [
+      { name: "Spain",       flag: "🇪🇸", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Cape Verde",  flag: "🇨🇻", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Saudi Arabia",flag: "🇸🇦", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Uruguay",     flag: "🇺🇾", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+    ],
+    matches: [
+      { home:"Spain",       away:"Cape Verde",   homeScore:null, awayScore:null, date:"Jun 15", time:"1pm ET",  md:"MD1" },
+      { home:"Saudi Arabia",away:"Uruguay",      homeScore:null, awayScore:null, date:"Jun 15", time:"6pm ET",  md:"MD1" },
+      { home:"Spain",       away:"Saudi Arabia", homeScore:null, awayScore:null, date:"Jun 21", time:"TBD",     md:"MD2" },
+      { home:"Uruguay",     away:"Cape Verde",   homeScore:null, awayScore:null, date:"Jun 22", time:"TBD",     md:"MD2" },
+      { home:"Spain",       away:"Uruguay",      homeScore:null, awayScore:null, date:"Jun 27", time:"TBD",     md:"MD3" },
+      { home:"Cape Verde",  away:"Saudi Arabia", homeScore:null, awayScore:null, date:"Jun 27", time:"TBD",     md:"MD3" },
+    ]
+  },
+  I: {
+    teams: [
+      { name: "France",  flag: "🇫🇷", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Senegal", flag: "🇸🇳", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Iraq",    flag: "🇮🇶", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Norway",  flag: "🇳🇴", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+    ],
+    matches: [
+      { home:"France",  away:"Senegal", homeScore:null, awayScore:null, date:"Jun 16", time:"TBD", md:"MD1" },
+      { home:"Iraq",    away:"Norway",  homeScore:null, awayScore:null, date:"Jun 16", time:"TBD", md:"MD1" },
+      { home:"France",  away:"Iraq",    homeScore:null, awayScore:null, date:"Jun 22", time:"TBD", md:"MD2" },
+      { home:"Norway",  away:"Senegal", homeScore:null, awayScore:null, date:"Jun 22", time:"TBD", md:"MD2" },
+      { home:"France",  away:"Norway",  homeScore:null, awayScore:null, date:"Jun 27", time:"TBD", md:"MD3" },
+      { home:"Senegal", away:"Iraq",    homeScore:null, awayScore:null, date:"Jun 27", time:"TBD", md:"MD3" },
+    ]
+  },
+  J: {
+    teams: [
+      { name: "Argentina",flag: "🇦🇷", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Algeria",  flag: "🇩🇿", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Austria",  flag: "🇦🇹", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Jordan",   flag: "🇯🇴", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+    ],
+    matches: [
+      { home:"Argentina",away:"Algeria",   homeScore:null, awayScore:null, date:"Jun 16", time:"TBD", md:"MD1" },
+      { home:"Austria",  away:"Jordan",    homeScore:null, awayScore:null, date:"Jun 16", time:"TBD", md:"MD1" },
+      { home:"Argentina",away:"Austria",   homeScore:null, awayScore:null, date:"Jun 22", time:"TBD", md:"MD2" },
+      { home:"Jordan",   away:"Algeria",   homeScore:null, awayScore:null, date:"Jun 22", time:"TBD", md:"MD2" },
+      { home:"Argentina",away:"Jordan",    homeScore:null, awayScore:null, date:"Jun 27", time:"TBD", md:"MD3" },
+      { home:"Algeria",  away:"Austria",   homeScore:null, awayScore:null, date:"Jun 27", time:"TBD", md:"MD3" },
+    ]
+  },
+  K: {
+    teams: [
+      { name: "Portugal",  flag: "🇵🇹", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Congo DR",  flag: "🇨🇩", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Uzbekistan",flag: "🇺🇿", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Colombia",  flag: "🇨🇴", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+    ],
+    matches: [
+      { home:"Portugal",  away:"Congo DR",   homeScore:null, awayScore:null, date:"Jun 17", time:"TBD", md:"MD1" },
+      { home:"Uzbekistan",away:"Colombia",   homeScore:null, awayScore:null, date:"Jun 17", time:"TBD", md:"MD1" },
+      { home:"Portugal",  away:"Uzbekistan", homeScore:null, awayScore:null, date:"Jun 23", time:"TBD", md:"MD2" },
+      { home:"Colombia",  away:"Congo DR",   homeScore:null, awayScore:null, date:"Jun 23", time:"TBD", md:"MD2" },
+      { home:"Portugal",  away:"Colombia",   homeScore:null, awayScore:null, date:"Jun 27", time:"TBD", md:"MD3" },
+      { home:"Congo DR",  away:"Uzbekistan", homeScore:null, awayScore:null, date:"Jun 27", time:"TBD", md:"MD3" },
+    ]
+  },
+  L: {
+    teams: [
+      { name: "England", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Croatia", flag: "🇭🇷", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Ghana",   flag: "🇬🇭", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Panama",  flag: "🇵🇦", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+    ],
+    matches: [
+      { home:"England",flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿", away:"Croatia", homeScore:null, awayScore:null, date:"Jun 17", time:"TBD", md:"MD1" },
+      { home:"Ghana",  away:"Panama",   homeScore:null, awayScore:null, date:"Jun 17", time:"TBD", md:"MD1" },
+      { home:"England",away:"Ghana",    homeScore:null, awayScore:null, date:"Jun 23", time:"TBD", md:"MD2" },
+      { home:"Panama", away:"Croatia",  homeScore:null, awayScore:null, date:"Jun 23", time:"TBD", md:"MD2" },
+      { home:"England",away:"Panama",   homeScore:null, awayScore:null, date:"Jun 27", time:"TBD", md:"MD3" },
+      { home:"Croatia",away:"Ghana",    homeScore:null, awayScore:null, date:"Jun 27", time:"TBD", md:"MD3" },
+    ]
+  },
+};
+
+// ── Render ──
+let activeGroup = 'D';
+
+function getStandings(group) {
+  return [...group.teams].map(t => ({
+    ...t,
+    GP: t.W + t.D + t.L,
+    GD: t.GF - t.GA,
+    PTS: t.W * 3 + t.D
+  })).sort((a,b) => b.PTS - a.PTS || b.GD - a.GD || b.GF - a.GF);
+}
+
+function renderTabs() {
+  const el = document.getElementById('group-tabs');
+  el.innerHTML = Object.keys(groups).map(g =>
+    `<button class="tab${g===activeGroup?' active':''}" onclick="setGroup('${g}')">Group ${g}</button>`
+  ).join('');
+}
+
+function renderContent() {
+  const group = groups[activeGroup];
+  const standings = getStandings(group);
+  const content = document.getElementById('content');
+
+  // Find team flag by name
+  const flagMap = {};
+  group.teams.forEach(t => flagMap[t.name] = { flag: t.flag, img: t.img });
+
+  // Standings
+  let html = `<div class="group-label">Group ${activeGroup} Standings</div>`;
+  html += `<table class="standings">
+    <thead><tr>
+      <th style="width:140px">Team</th>
+      <th>GP</th><th>W</th><th>D</th><th>L</th>
+      <th>GF</th><th>GA</th><th>GD</th>
+      <th style="color:#d4af37">PTS</th>
+    </tr></thead><tbody>`;
+
+  standings.forEach((t, i) => {
+    const qualified = i < 2 ? 'qualified' : '';
+    const hostClass = t.host ? ' host' : '';
+    const imgHtml = t.img
+      ? `<img class="team-img" src="${t.img}" alt="${t.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      : '';
+    const flagHtml = `<div class="team-flag-placeholder" style="${t.img?'display:none':''}"}>${t.flag}</div>`;
+
+    html += `<tr class="team-row ${qualified}">
+      <td><div class="team-cell">${imgHtml}${flagHtml}<span class="team-name${hostClass}">${t.name}${t.host?' ★':''}</span></div></td>
+      <td class="stat-cell">${t.GP}</td>
+      <td class="stat-cell">${t.W}</td>
+      <td class="stat-cell">${t.D}</td>
+      <td class="stat-cell">${t.L}</td>
+      <td class="stat-cell">${t.GF}</td>
+      <td class="stat-cell">${t.GA}</td>
+      <td class="stat-cell" style="color:${t.GD>0?'#4a9e6a':t.GD<0?'#b04040':'#6a8aaa'}">${t.GD>0?'+':''}${t.GD}</td>
+      <td class="pts-cell">${t.PTS}</td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+
+  // Matches
+  html += `<div class="matches-label">Matches</div>`;
+  group.matches.forEach(m => {
+    const played = m.homeScore !== null;
+    const hf = flagMap[m.home] || { flag:'', img:'' };
+    const af = flagMap[m.away] || { flag:'', img:'' };
+    const scoreHtml = played
+      ? `<div class="match-score">${m.homeScore} – ${m.awayScore}</div>`
+      : `<div class="match-vs">VS</div>`;
+    html += `<div class="match-card ${played?'played':'upcoming'}">
+      <div class="match-team">
+        <span class="match-team-flag">${hf.flag}</span>
+        <span>${m.home}</span>
+      </div>
+      <div class="match-center">
+        ${scoreHtml}
+        <div class="match-date">${m.date} · ${m.time}</div>
+        <div class="match-md">${m.md}</div>
+      </div>
+      <div class="match-team away">
+        <span>${m.away}</span>
+        <span class="match-team-flag">${af.flag}</span>
+      </div>
+    </div>`;
+  });
+
+  content.innerHTML = html;
+}
+
+function setGroup(g) {
+  activeGroup = g;
+  renderTabs();
+  renderContent();
+}
+
+renderTabs();
+renderContent();
+</script>
+</body>
+</html>
