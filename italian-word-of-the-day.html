@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parola del Giorno</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 12px;
+    font-family: 'Crimson Pro', Georgia, serif;
+  }
+
+  .card {
+    position: relative;
+    width: 100%;
+    max-width: 480px;
+    background: #f5ede0;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow:
+      0 2px 4px rgba(80,30,10,0.08),
+      0 8px 32px rgba(80,30,10,0.12),
+      inset 0 0 0 1px rgba(180,100,40,0.15);
+  }
+
+  /* Italian flag stripe top */
+  .flag-bar {
+    display: flex;
+    height: 5px;
+  }
+  .flag-bar span {
+    flex: 1;
+  }
+  .flag-bar span:nth-child(1) { background: #009246; }
+  .flag-bar span:nth-child(2) { background: #f1f1f1; }
+  .flag-bar span:nth-child(3) { background: #ce2b37; }
+
+  /* Texture overlay */
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  .inner {
+    position: relative;
+    z-index: 1;
+    padding: 28px 32px 24px;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .label {
+    font-family: 'Crimson Pro', serif;
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #9b4a1a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .label::before {
+    content: '✦';
+    font-size: 8px;
+  }
+
+  .date-badge {
+    font-family: 'Crimson Pro', serif;
+    font-size: 11px;
+    color: #b87040;
+    font-style: italic;
+  }
+
+  /* Divider */
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #c87840, #9b4a1a, #c87840, transparent);
+    margin-bottom: 24px;
+    opacity: 0.4;
+  }
+
+  /* Word block */
+  .word-block {
+    text-align: center;
+    margin-bottom: 6px;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  .word-block.fading {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  .italian-word {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 48px;
+    font-weight: 700;
+    font-style: italic;
+    color: #3d1a08;
+    line-height: 1;
+    letter-spacing: -0.5px;
+  }
+
+  .pronunciation {
+    font-family: 'Crimson Pro', serif;
+    font-size: 15px;
+    color: #9b4a1a;
+    margin-top: 6px;
+    font-style: normal;
+    letter-spacing: 0.04em;
+  }
+
+  .part-of-speech {
+    display: inline-block;
+    font-family: 'Crimson Pro', serif;
+    font-size: 11px;
+    font-style: italic;
+    color: #fff;
+    background: #9b4a1a;
+    padding: 2px 10px;
+    border-radius: 20px;
+    margin-top: 10px;
+    letter-spacing: 0.06em;
+  }
+
+  /* Definition */
+  .definition-block {
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(155,74,26,0.2);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  .definition-block.fading {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  .def-label {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #b87040;
+    margin-bottom: 6px;
+  }
+
+  .definition {
+    font-family: 'Crimson Pro', serif;
+    font-size: 19px;
+    color: #2d1206;
+    line-height: 1.5;
+    font-weight: 400;
+  }
+
+  /* Example */
+  .example-block {
+    margin-top: 16px;
+    padding: 12px 16px;
+    background: rgba(155,74,26,0.07);
+    border-left: 3px solid #c87840;
+    border-radius: 0 3px 3px 0;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  .example-block.fading {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  .example-it {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-style: italic;
+    color: #3d1a08;
+    line-height: 1.5;
+  }
+
+  .example-en {
+    font-family: 'Crimson Pro', serif;
+    font-size: 13px;
+    color: #9b6040;
+    margin-top: 4px;
+    font-style: normal;
+    line-height: 1.4;
+  }
+
+  /* Footer */
+  .footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(155,74,26,0.15);
+  }
+
+  /* Dots */
+  .dots {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+  }
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #d4a882;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+  }
+  .dot.active {
+    background: #9b4a1a;
+    transform: scale(1.3);
+  }
+  .dot:hover {
+    background: #c87840;
+  }
+
+  /* Next button */
+  .next-btn {
+    font-family: 'Crimson Pro', serif;
+    font-size: 13px;
+    font-style: italic;
+    color: #9b4a1a;
+    background: none;
+    border: 1px solid rgba(155,74,26,0.35);
+    border-radius: 20px;
+    padding: 5px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    letter-spacing: 0.03em;
+  }
+  .next-btn:hover {
+    background: rgba(155,74,26,0.08);
+    border-color: #9b4a1a;
+    color: #3d1a08;
+  }
+  .next-btn svg {
+    width: 12px;
+    height: 12px;
+    transition: transform 0.2s;
+  }
+  .next-btn:hover svg {
+    transform: translateX(3px);
+  }
+
+  /* Bottom flag */
+  .flag-bar-bottom {
+    display: flex;
+    height: 3px;
+    opacity: 0.6;
+  }
+  .flag-bar-bottom span {
+    flex: 1;
+  }
+  .flag-bar-bottom span:nth-child(1) { background: #009246; }
+  .flag-bar-bottom span:nth-child(2) { background: #f1f1f1; }
+  .flag-bar-bottom span:nth-child(3) { background: #ce2b37; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="flag-bar"><span></span><span></span><span></span></div>
+  <div class="inner">
+    <div class="header">
+      <div class="label">Parola del Giorno</div>
+      <div class="date-badge" id="date-display"></div>
+    </div>
+    <div class="divider"></div>
+
+    <div class="word-block" id="word-block">
+      <div class="italian-word" id="word"></div>
+      <div class="pronunciation" id="pronunciation"></div>
+      <span class="part-of-speech" id="pos"></span>
+    </div>
+
+    <div class="definition-block" id="def-block">
+      <div class="def-label">Significato · Meaning</div>
+      <div class="definition" id="definition"></div>
+    </div>
+
+    <div class="example-block" id="ex-block">
+      <div class="example-it" id="example-it"></div>
+      <div class="example-en" id="example-en"></div>
+    </div>
+
+    <div class="footer">
+      <div class="dots" id="dots"></div>
+      <button class="next-btn" id="next-btn">
+        prossima
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div class="flag-bar-bottom"><span></span><span></span><span></span></div>
+</div>
+
+<script>
+const words = [
+  { word: "bellaggine", pronunciation: "[bel-LAD-ji-ne]", pos: "sostantivo f.", definition: "Excessive vanity; the quality of being overly concerned with one's appearance.", exIt: "La bellaggine di quel personaggio lo rendeva ridicolo agli occhi di tutti.", exEn: "That character's vanity made him ridiculous in everyone's eyes." },
+  { word: "meraviglioso", pronunciation: "[me-ra-vil-YO-zo]", pos: "aggettivo", definition: "Wonderful, marvelous; something that fills one with wonder and delight.", exIt: "Il tramonto sul mare era semplicemente meraviglioso.", exEn: "The sunset over the sea was simply marvelous." },
+  { word: "abbiocco", pronunciation: "[ab-BYOK-ko]", pos: "sostantivo m.", definition: "The drowsy, sleepy feeling that comes after a big meal.", exIt: "Dopo il pranzo della domenica, mi è venuto un abbiocco tremendo.", exEn: "After Sunday lunch, I was hit with a tremendous food coma." },
+  { word: "serenità", pronunciation: "[se-re-ni-TAH]", pos: "sostantivo f.", definition: "Serenity; a state of calm, peace, and clarity of mind.", exIt: "La campagna toscana mi dà una serenità che non trovo in città.", exEn: "The Tuscan countryside gives me a serenity I can't find in the city." },
+  { word: "passeggiata", pronunciation: "[pas-sed-JA-ta]", pos: "sostantivo f.", definition: "A leisurely walk or stroll, especially the Italian evening tradition of walking through town.", exIt: "Ogni sera facciamo una passeggiata nel centro storico.", exEn: "Every evening we take a stroll through the historic center." },
+  { word: "dolcevita", pronunciation: "[dol-che-VEE-ta]", pos: "sostantivo f.", definition: "The sweet life; a lifestyle of pleasure, indulgence, and elegant ease.", exIt: "Roma degli anni '60 era il simbolo della dolcevita italiana.", exEn: "Rome in the '60s was the symbol of the Italian sweet life." },
+  { word: "frastuono", pronunciation: "[fras-TWO-no]", pos: "sostantivo m.", definition: "A loud, chaotic din or uproar; the noisy bustle of a crowd.", exIt: "Il frastuono del mercato al mattino mi svegliava sempre.", exEn: "The din of the morning market always woke me up." },
+  { word: "sgambettare", pronunciation: "[sgam-bet-TA-re]", pos: "verbo", definition: "To trot or toddle along; the endearing scurrying walk of a child or small animal.", exIt: "Il bambino sgambettava felice per il giardino.", exEn: "The child toddled happily through the garden." },
+  { word: "magari", pronunciation: "[ma-GA-ri]", pos: "avverbio / escl.", definition: "Maybe, perhaps; also used as an expression of longing — 'if only!' or 'I wish!'", exIt: "Magari potessi vivere a Firenze per sempre!", exEn: "If only I could live in Florence forever!" },
+  { word: "apericena", pronunciation: "[a-pe-ri-CHE-na]", pos: "sostantivo f.", definition: "A hybrid of aperitivo and cena — drinks with enough finger food to substitute dinner.", exIt: "Stasera niente ristorante, facciamo un'apericena con gli amici.", exEn: "No restaurant tonight — we're doing drinks and nibbles with friends." },
+  { word: "splendore", pronunciation: "[splen-DO-re]", pos: "sostantivo m.", definition: "Splendor, brilliance; breathtaking beauty or magnificence.", exIt: "Lo splendore del Colosseo al tramonto è indimenticabile.", exEn: "The splendor of the Colosseum at sunset is unforgettable." },
+  { word: "ciondolare", pronunciation: "[chon-do-LA-re]", pos: "verbo", definition: "To dangle, to lounge aimlessly; to hang around doing nothing in particular.", exIt: "Il sabato mattina mi piace ciondolare per casa in pigiama.", exEn: "Saturday mornings I like to lounge around the house in pajamas." },
+  { word: "profumo", pronunciation: "[pro-FOO-mo]", pos: "sostantivo m.", definition: "Perfume, scent, fragrance; any beautiful or evocative smell.", exIt: "Il profumo del caffè fresco mi fa sempre svegliar bene.", exEn: "The scent of fresh coffee always gets my day off to a good start." },
+  { word: "vaghezza", pronunciation: "[va-GHE-tsa]", pos: "sostantivo f.", definition: "Vagueness; but also in older Italian, loveliness and indefinable charm.", exIt: "C'era una certa vaghezza nel suo sorriso che non riuscivo a interpretare.", exEn: "There was a certain indefinable charm in her smile I couldn't quite read." },
+  { word: "culaccino", pronunciation: "[ku-la-CHI-no]", pos: "sostantivo m.", definition: "The ring left on a surface by a wet glass or cup — a beloved untranslatable Italian word.", exIt: "Il tavolo era pieno di culaccini lasciati dai bicchieri della sera prima.", exEn: "The table was covered in rings left by the previous evening's glasses." },
+  { word: "rintocco", pronunciation: "[rin-TOK-ko]", pos: "sostantivo m.", definition: "The toll or peal of a bell; a single resonant chime.", exIt: "I rintocchi della campana del duomo risuonavano per tutta la città.", exEn: "The tolling of the cathedral bell echoed throughout the entire city." },
+  { word: "allegria", pronunciation: "[al-le-GRI-a]", pos: "sostantivo f.", definition: "Joy, cheerfulness, high spirits; a lively and infectious happiness.", exIt: "L'allegria dei bambini a Natale è contagiosa.", exEn: "The joy of children at Christmas is contagious." },
+  { word: "gattara", pronunciation: "[gat-TA-ra]", pos: "sostantivo f.", definition: "A woman, often elderly, who feeds and cares for stray cats — a beloved urban figure in Italy.", exIt: "La gattara del quartiere conosce ogni gatto per nome.", exEn: "The neighborhood cat lady knows every cat by name." },
+  { word: "assaporare", pronunciation: "[as-sa-po-RA-re]", pos: "verbo", definition: "To savor, to taste slowly and with full attention; to relish an experience.", exIt: "Siediti e assapora ogni boccone — non c'è fretta.", exEn: "Sit down and savor every bite — there's no rush." },
+  { word: "tramonto", pronunciation: "[tra-MON-to]", pos: "sostantivo m.", definition: "Sunset; the setting of the sun below the horizon, and all its golden beauty.", exIt: "Nessun tramonto è uguale a quello visto dal Gianicolo a Roma.", exEn: "No sunset compares to the one seen from the Janiculum Hill in Rome." },
+  { word: "vivacità", pronunciation: "[vi-va-chi-TAH]", pos: "sostantivo f.", definition: "Vivacity, liveliness; a sparkling and energetic quality in a person or place.", exIt: "La vivacità di Napoli ti travolge appena arrivi.", exEn: "Naples' vivacity sweeps you up the moment you arrive." },
+  { word: "brivido", pronunciation: "[BRI-vi-do]", pos: "sostantivo m.", definition: "A shiver or thrill; the physical sensation of a chill from cold, fear, or excitement.", exIt: "La musica di Verdi mi dà sempre i brividi.", exEn: "Verdi's music always gives me chills." },
+  { word: "mangiare", pronunciation: "[man-JA-re]", pos: "verbo", definition: "To eat; but in Italian culture, an act elevated to ritual, pleasure, and love.", exIt: "In Italia, mangiare insieme è un modo per volersi bene.", exEn: "In Italy, eating together is a way of showing love." },
+  { word: "pomeriggio", pronunciation: "[po-me-RID-jo]", pos: "sostantivo m.", definition: "Afternoon; that gentle, sun-warmed stretch of time between lunch and evening.", exIt: "Il pomeriggio d'estate è perfetto per una siesta all'ombra.", exEn: "A summer afternoon is perfect for a nap in the shade." },
+  { word: "rimpianto", pronunciation: "[rim-PYAN-to]", pos: "sostantivo m.", definition: "Regret, longing; a wistful sorrow for something lost or left behind.", exIt: "Parto con il rimpianto di non aver visitato Venezia abbastanza.", exEn: "I'm leaving with the regret of not having visited Venice enough." },
+  { word: "mattino", pronunciation: "[mat-TI-no]", pos: "sostantivo m.", definition: "Morning; the early hours of the day when the world is still fresh and quiet.", exIt: "Il mattino ha l'oro in bocca — si dice in italiano.", exEn: "'The morning has gold in its mouth' — as they say in Italian." },
+  { word: "lentezza", pronunciation: "[len-TE-tsa]", pos: "sostantivo f.", definition: "Slowness; but in Italian culture, often a virtue — the art of taking one's time.", exIt: "La lentezza di un pranzo italiano è parte del piacere.", exEn: "The slowness of an Italian lunch is part of the pleasure." },
+  { word: "rincasare", pronunciation: "[rin-ka-ZA-re]", pos: "verbo", definition: "To return home, to head back; that warm feeling of going back to one's own place.", exIt: "Dopo una lunga giornata, non vedo l'ora di rincasare.", exEn: "After a long day, I can't wait to head home." },
+  { word: "farfalla", pronunciation: "[far-FAL-la]", pos: "sostantivo f.", definition: "Butterfly; also a bow tie, and used poetically for anything light and fluttering.", exIt: "Una farfalla gialla si posò sul davanzale della finestra.", exEn: "A yellow butterfly landed on the windowsill." },
+  { word: "incantevole", pronunciation: "[in-kan-TE-vo-le]", pos: "aggettivo", definition: "Enchanting, charming, delightful; something that casts a spell on you.", exIt: "Il villaggio di Positano è semplicemente incantevole.", exEn: "The village of Positano is simply enchanting." },
+];
+
+// Daily index based on date
+const today = new Date();
+const dayNum = Math.floor(today.getTime() / 86400000);
+const dayIndex = dayNum % words.length;
+
+let current = parseInt(sessionStorage.getItem('itWordIdx') ?? dayIndex);
+if (isNaN(current) || current < 0 || current >= words.length) current = dayIndex;
+
+// Date display
+const months = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+document.getElementById('date-display').textContent = `${today.getDate()} ${months[today.getMonth()]}`;
+
+// Build dots (show 8)
+const dotsEl = document.getElementById('dots');
+const SHOWN = 8;
+for (let i = 0; i < SHOWN; i++) {
+  const d = document.createElement('div');
+  d.className = 'dot';
+  d.addEventListener('click', () => show((current - (current % SHOWN)) + i));
+  dotsEl.appendChild(d);
+}
+
+function show(idx) {
+  idx = ((idx % words.length) + words.length) % words.length;
+
+  const wb = document.getElementById('word-block');
+  const db = document.getElementById('def-block');
+  const eb = document.getElementById('ex-block');
+
+  wb.classList.add('fading');
+  db.classList.add('fading');
+  eb.classList.add('fading');
+
+  setTimeout(() => {
+    current = idx;
+    sessionStorage.setItem('itWordIdx', current);
+    const w = words[current];
+
+    document.getElementById('word').textContent = w.word;
+    document.getElementById('pronunciation').textContent = w.pronunciation;
+    document.getElementById('pos').textContent = w.pos;
+    document.getElementById('definition').textContent = w.definition;
+    document.getElementById('example-it').textContent = `"${w.exIt}"`;
+    document.getElementById('example-en').textContent = w.exEn;
+
+    // Update dots
+    const dotEls = dotsEl.querySelectorAll('.dot');
+    dotEls.forEach((d, i) => d.classList.toggle('active', i === current % SHOWN));
+
+    wb.classList.remove('fading');
+    db.classList.remove('fading');
+    eb.classList.remove('fading');
+  }, 350);
+}
+
+document.getElementById('next-btn').addEventListener('click', () => show(current + 1));
+
+// Initial render
+show(current);
+</script>
+</body>
+</html>
