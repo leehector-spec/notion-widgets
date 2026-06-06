@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LSU Tigers 2026 Football</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;500;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+body {
+  background: transparent;
+  font-family: 'Barlow Condensed', sans-serif;
+  display: flex;
+  justify-content: center;
+  padding: 10px;
+}
+
+.widget {
+  width: 100%;
+  max-width: 520px;
+  background: #0e0518;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.7);
+  border: 1px solid rgba(253,208,35,0.25);
+}
+
+/* ── Header ── */
+.header {
+  background: linear-gradient(135deg, #1a0a2e 0%, #2d1060 50%, #1a0a2e 100%);
+  padding: 20px 20px 16px;
+  border-bottom: 3px solid #fdd023;
+  position: relative;
+  overflow: hidden;
+}
+.header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 18px,
+    rgba(253,208,35,0.03) 18px,
+    rgba(253,208,35,0.03) 19px
+  );
+}
+.header-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.tiger-logo {
+  font-size: 48px;
+  filter: drop-shadow(0 0 12px rgba(253,208,35,0.4));
+  flex-shrink: 0;
+}
+.title-block { flex: 1; }
+.title-main {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 30px;
+  color: #fdd023;
+  letter-spacing: 4px;
+  line-height: 1;
+  text-shadow: 0 0 30px rgba(253,208,35,0.4);
+}
+.title-sub {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  color: #9a70cc;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+.title-venue {
+  font-family: 'Barlow', sans-serif;
+  font-size: 11px;
+  color: #5a3a7a;
+  margin-top: 2px;
+  font-style: italic;
+}
+
+/* ── Record tracker ── */
+.record-bar {
+  background: linear-gradient(90deg, #0a0318, #1a0840, #0a0318);
+  border-bottom: 1px solid rgba(253,208,35,0.15);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.record-block {
+  text-align: center;
+  flex: 1;
+}
+.record-label {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #5a3a7a;
+  margin-bottom: 2px;
+}
+.record-value {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  color: #fdd023;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+.record-value.sec { color: #c8a0f0; }
+.record-divider {
+  width: 1px;
+  height: 36px;
+  background: rgba(253,208,35,0.15);
+}
+.streak-block { text-align: center; flex: 1; }
+.streak-label {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #5a3a7a;
+  margin-bottom: 2px;
+}
+.streak-value {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 1px;
+  line-height: 1;
+}
+.streak-value.win { color: #4ac880; }
+.streak-value.loss { color: #c84a4a; }
+.streak-value.none { color: #3a2060; }
+
+/* ── Schedule ── */
+.schedule { padding: 12px 14px 8px; }
+
+.game-card {
+  display: grid;
+  grid-template-columns: 52px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-left: 3px solid transparent;
+  transition: all 0.2s;
+  position: relative;
+}
+.game-card:hover { background: rgba(255,255,255,0.06); }
+
+.game-card.home { border-left-color: #fdd023; }
+.game-card.away { border-left-color: #4a1a7a; }
+.game-card.bye {
+  border-left-color: #2a1a3a;
+  opacity: 0.6;
+}
+.game-card.win { background: rgba(74,200,128,0.06); border-left-color: #4ac880; }
+.game-card.loss { background: rgba(200,74,74,0.06); border-left-color: #c84a4a; }
+.game-card.rivalry { border-color: rgba(253,208,35,0.3); }
+
+/* Rivalry glow */
+.game-card.rivalry::after {
+  content: '⚔';
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-size: 10px;
+  color: #fdd023;
+  opacity: 0.5;
+}
+
+/* Date block */
+.date-block { text-align: center; }
+.date-month {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #5a3a7a;
+  line-height: 1;
+}
+.date-day {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  color: #fdd023;
+  line-height: 1;
+}
+.date-dow {
+  font-size: 9px;
+  color: #3a2060;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Game info */
+.game-info {}
+.game-matchup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ha-badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 2px 5px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.ha-badge.home { background: rgba(253,208,35,0.15); color: #fdd023; }
+.ha-badge.away { background: rgba(74,26,122,0.4); color: #c8a0f0; }
+.ha-badge.bye-tag { background: rgba(58,32,96,0.4); color: #5a3a7a; }
+
+.opponent {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #e0d0f8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.opponent.rivalry-name { color: #fdd023; }
+
+.game-details {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 3px;
+  flex-wrap: wrap;
+}
+.game-time {
+  font-size: 11px;
+  color: #5a3a7a;
+}
+.game-network {
+  font-size: 10px;
+  font-weight: 600;
+  color: #3a2060;
+  background: rgba(255,255,255,0.05);
+  padding: 1px 6px;
+  border-radius: 2px;
+  letter-spacing: 0.05em;
+}
+.game-network.espn { color: #e8a020; background: rgba(232,160,32,0.1); }
+.game-network.abc { color: #60a0e8; background: rgba(96,160,232,0.1); }
+.game-network.cbs { color: #60c8e8; background: rgba(96,200,232,0.1); }
+.game-network.secn { color: #c8a0f0; background: rgba(200,160,240,0.1); }
+.game-network.espn2 { color: #e87040; background: rgba(232,112,64,0.1); }
+
+.game-venue {
+  font-size: 10px;
+  color: #3a2060;
+  font-style: italic;
+}
+
+/* Result */
+.result-block { text-align: right; min-width: 52px; }
+.result-badge {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 1px;
+  line-height: 1;
+}
+.result-badge.W { color: #4ac880; }
+.result-badge.L { color: #c84a4a; }
+.result-score {
+  font-size: 11px;
+  color: #5a3a7a;
+  margin-top: 2px;
+}
+.result-tbd {
+  font-size: 10px;
+  color: #2a1a3a;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Section labels */
+.section-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 13px;
+  color: #4a1a7a;
+  letter-spacing: 3px;
+  padding: 6px 2px 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(74,26,122,0.3);
+}
+
+/* Footer */
+.footer {
+  padding: 10px 16px;
+  background: #060110;
+  border-top: 1px solid rgba(253,208,35,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.legend {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: #3a2060;
+}
+.legend-bar {
+  width: 10px;
+  height: 10px;
+  border-radius: 1px;
+}
+.update-note {
+  font-size: 10px;
+  color: #2a1040;
+  font-style: italic;
+}
+</style>
+</head>
+<body>
+<div class="widget">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-inner">
+      <div class="tiger-logo">🐯</div>
+      <div class="title-block">
+        <div class="title-main">LSU Tigers</div>
+        <div class="title-sub">2026 Football Schedule</div>
+        <div class="title-venue">Tiger Stadium · Baton Rouge, Louisiana</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Record Bar -->
+  <div class="record-bar" id="record-bar"></div>
+
+  <!-- Schedule -->
+  <div class="schedule" id="schedule"></div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="legend">
+      <div class="legend-item"><div class="legend-bar" style="background:#fdd023"></div> Home</div>
+      <div class="legend-item"><div class="legend-bar" style="background:#4a1a7a"></div> Away</div>
+      <div class="legend-item"><div class="legend-bar" style="background:#4ac880"></div> Win</div>
+      <div class="legend-item"><div class="legend-bar" style="background:#c84a4a"></div> Loss</div>
+      <div class="legend-item">⚔ Rival</div>
+    </div>
+    <div class="update-note">Update result & score after each game</div>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// SCHEDULE DATA
+// result: null = not played, 'W' = win, 'L' = loss
+// score: "34-17" format (LSU score first), null if not played
+// network: espn, abc, cbs, secn, espn2, tbd
+// rivalry: true for big rivalry games
+// sec: true for SEC conference games
+// ═══════════════════════════════════════════════════════
+const games = [
+  {
+    date: "Sep 5",  dow: "Sat", month: "SEP", day: "5",
+    opponent: "Clemson",        ha: "home",
+    time: "TBD",   network: "tbd",
+    venue: "Tiger Stadium",
+    result: null, score: null,
+    rivalry: false, sec: false, bye: false
+  },
+  {
+    date: "Sep 12", dow: "Sat", month: "SEP", day: "12",
+    opponent: "Louisiana Tech",  ha: "home",
+    time: "TBD",   network: "secn",
+    venue: "Tiger Stadium",
+    result: null, score: null,
+    rivalry: false, sec: false, bye: false
+  },
+  {
+    date: "Sep 19", dow: "Sat", month: "SEP", day: "19",
+    opponent: "Ole Miss",        ha: "away",
+    time: "TBD",   network: "espn",
+    venue: "Vaught-Hemingway Stadium · Oxford, MS",
+    result: null, score: null,
+    rivalry: true, sec: true, bye: false
+  },
+  {
+    date: "Sep 26", dow: "Sat", month: "SEP", day: "26",
+    opponent: "Texas A&M",       ha: "home",
+    time: "TBD",   network: "espn",
+    venue: "Tiger Stadium",
+    result: null, score: null,
+    rivalry: true, sec: true, bye: false
+  },
+  {
+    date: "Oct 3",  dow: "Sat", month: "OCT", day: "3",
+    opponent: "McNeese",         ha: "home",
+    time: "TBD",   network: "secn",
+    venue: "Tiger Stadium",
+    result: null, score: null,
+    rivalry: false, sec: false, bye: false
+  },
+  {
+    date: "Oct 10", dow: "Sat", month: "OCT", day: "10",
+    opponent: "Kentucky",        ha: "away",
+    time: "TBD",   network: "secn",
+    venue: "Kroger Field · Lexington, KY",
+    result: null, score: null,
+    rivalry: false, sec: true, bye: false
+  },
+  {
+    date: "Oct 17", dow: "Sat", month: "OCT", day: "17",
+    opponent: "Mississippi State",ha: "home",
+    time: "TBD",   network: "secn",
+    venue: "Tiger Stadium",
+    result: null, score: null,
+    rivalry: false, sec: true, bye: false
+  },
+  {
+    date: "Oct 24", dow: "Sat", month: "OCT", day: "24",
+    opponent: "Auburn",          ha: "away",
+    time: "TBD",   network: "espn",
+    venue: "Jordan-Hare Stadium · Auburn, AL",
+    result: null, score: null,
+    rivalry: true, sec: true, bye: false
+  },
+  {
+    date: "Oct 31", dow: "Sat", month: "OCT", day: "31",
+    opponent: "BYE WEEK",        ha: "bye",
+    time: "",      network: "",
+    venue: "",
+    result: null, score: null,
+    rivalry: false, sec: false, bye: true
+  },
+  {
+    date: "Nov 7",  dow: "Sat", month: "NOV", day: "7",
+    opponent: "Alabama",         ha: "home",
+    time: "TBD",   network: "cbs",
+    venue: "Tiger Stadium",
+    result: null, score: null,
+    rivalry: true, sec: true, bye: false
+  },
+  {
+    date: "Nov 14", dow: "Sat", month: "NOV", day: "14",
+    opponent: "Texas",           ha: "home",
+    time: "TBD",   network: "abc",
+    venue: "Tiger Stadium",
+    result: null, score: null,
+    rivalry: false, sec: true, bye: false
+  },
+  {
+    date: "Nov 21", dow: "Sat", month: "NOV", day: "21",
+    opponent: "Tennessee",       ha: "away",
+    time: "TBD",   network: "espn",
+    venue: "Neyland Stadium · Knoxville, TN",
+    result: null, score: null,
+    rivalry: true, sec: true, bye: false
+  },
+  {
+    date: "Nov 28", dow: "Sat", month: "NOV", day: "28",
+    opponent: "Arkansas",        ha: "away",
+    time: "TBD",   network: "secn",
+    venue: "Donald W. Reynolds Razorback Stadium · Fayetteville, AR",
+    result: null, score: null,
+    rivalry: true, sec: true, bye: false
+  },
+];
+
+// ── Calculate record ──
+function calcRecord() {
+  let W=0, L=0, secW=0, secL=0, streak=0, streakType=null;
+  games.filter(g => !g.bye && g.result).forEach(g => {
+    if (g.result === 'W') { W++; if(g.sec) secW++; }
+    if (g.result === 'L') { L++; if(g.sec) secL++; }
+  });
+  // Streak — find last result
+  const played = games.filter(g => !g.bye && g.result !== null);
+  if (played.length) {
+    const last = played[played.length-1].result;
+    streakType = last;
+    for (let i = played.length-1; i >= 0; i--) {
+      if (played[i].result === last) streak++;
+      else break;
+    }
+  }
+  return { W, L, secW, secL, streak, streakType };
+}
+
+// ── Render record bar ──
+function renderRecord() {
+  const { W, L, secW, secL, streak, streakType } = calcRecord();
+  let streakHtml = '<div class="streak-value none">—</div>';
+  if (streakType === 'W') streakHtml = `<div class="streak-value win">W${streak}</div>`;
+  if (streakType === 'L') streakHtml = `<div class="streak-value loss">L${streak}</div>`;
+
+  document.getElementById('record-bar').innerHTML = `
+    <div class="record-block">
+      <div class="record-label">Overall</div>
+      <div class="record-value">${W}-${L}</div>
+    </div>
+    <div class="record-divider"></div>
+    <div class="record-block">
+      <div class="record-label">SEC</div>
+      <div class="record-value sec">${secW}-${secL}</div>
+    </div>
+    <div class="record-divider"></div>
+    <div class="streak-block">
+      <div class="streak-label">Streak</div>
+      ${streakHtml}
+    </div>
+  `;
+}
+
+// ── Render schedule ──
+function renderSchedule() {
+  const el = document.getElementById('schedule');
+  let html = '';
+  let shownNonConf = false, shownSec = false;
+
+  games.forEach((g, i) => {
+    // Section labels
+    if (!shownNonConf && !g.sec && !g.bye) {
+      html += `<div class="section-label">Non-Conference</div>`;
+      shownNonConf = true;
+    }
+    if (!shownSec && g.sec) {
+      html += `<div class="section-label">SEC Schedule</div>`;
+      shownSec = true;
+    }
+    if (g.bye) {
+      html += `<div class="section-label">Open Date</div>`;
+    }
+
+    // Card class
+    let cardClass = g.bye ? 'bye' : g.ha;
+    if (g.result === 'W') cardClass = 'win';
+    if (g.result === 'L') cardClass = 'loss';
+    if (g.rivalry && !g.result) cardClass += ' rivalry';
+
+    // Network badge
+    const netClass = g.network === 'tbd' ? '' : g.network;
+    const netLabel = g.network === 'tbd' ? 'TBD' :
+                     g.network === 'secn' ? 'SEC Network' :
+                     g.network === 'espn2' ? 'ESPN2' :
+                     g.network.toUpperCase();
+
+    // Result
+    let resultHtml = `<div class="result-tbd">${g.bye ? '' : 'TBD'}</div>`;
+    if (g.result) {
+      resultHtml = `
+        <div class="result-badge ${g.result}">${g.result}</div>
+        <div class="result-score">${g.score || ''}</div>
+      `;
+    }
+
+    if (g.bye) {
+      html += `
+        <div class="game-card bye">
+          <div class="date-block">
+            <div class="date-month">${g.month}</div>
+            <div class="date-day">${g.day}</div>
+            <div class="date-dow">${g.dow}</div>
+          </div>
+          <div class="game-info">
+            <div class="game-matchup">
+              <span class="ha-badge bye-tag">BYE</span>
+              <span class="opponent" style="color:#2a1a3a">Open Date</span>
+            </div>
+          </div>
+          <div class="result-block"></div>
+        </div>`;
+      return;
+    }
+
+    html += `
+      <div class="game-card ${cardClass}">
+        <div class="date-block">
+          <div class="date-month">${g.month}</div>
+          <div class="date-day">${g.day}</div>
+          <div class="date-dow">${g.dow}</div>
+        </div>
+        <div class="game-info">
+          <div class="game-matchup">
+            <span class="ha-badge ${g.ha}">${g.ha === 'home' ? 'HOME' : 'AWAY'}</span>
+            <span class="opponent${g.rivalry ? ' rivalry-name' : ''}">${g.opponent}</span>
+          </div>
+          <div class="game-details">
+            <span class="game-time">${g.time}</span>
+            ${g.network ? `<span class="game-network ${netClass}">${netLabel}</span>` : ''}
+            <span class="game-venue">${g.venue}</span>
+          </div>
+        </div>
+        <div class="result-block">${resultHtml}</div>
+      </div>`;
+  });
+
+  el.innerHTML = html;
+}
+
+renderRecord();
+renderSchedule();
+</script>
+</body>
+</html>
