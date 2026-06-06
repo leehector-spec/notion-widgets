@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stoic Wisdom</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: transparent;
+    font-family: 'EB Garamond', serif;
+    padding: 4px;
+  }
+
+  .card {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    padding: 22px 24px 18px;
+    background: linear-gradient(160deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+    box-shadow: 0 6px 28px rgba(0,0,0,.45);
+    color: #d4c9b0;
+    transition: transform .25s ease, box-shadow .25s ease;
+  }
+  .card:hover { transform: translateY(-2px); }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #c9a84c, #e8d48b, #c9a84c);
+  }
+
+  .tag {
+    font-family: 'Cinzel', serif;
+    font-size: 9px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: #c9a84c;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tag::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, #c9a84c40, transparent);
+  }
+
+  .quote-mark {
+    font-family: 'Cinzel', serif;
+    font-size: 52px;
+    line-height: .6;
+    color: #c9a84c30;
+    float: left;
+    margin-right: 6px;
+    margin-top: 6px;
+    user-select: none;
+  }
+
+  .quote-text {
+    font-size: 15px;
+    line-height: 1.65;
+    font-style: italic;
+    color: #e8e0cc;
+    min-height: 56px;
+    transition: opacity .4s ease;
+  }
+
+  .author {
+    margin-top: 12px;
+    font-family: 'Cinzel', serif;
+    font-size: 10.5px;
+    letter-spacing: .15em;
+    color: #c9a84c;
+    text-align: right;
+    transition: opacity .4s ease;
+  }
+
+  .controls {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .dots { display: flex; gap: 5px; }
+  .dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: #c9a84c30;
+    transition: background .3s;
+    cursor: pointer;
+  }
+  .dot.active { background: #c9a84c; }
+
+  .btn {
+    background: none;
+    border: 1px solid #c9a84c50;
+    border-radius: 4px;
+    font-family: 'Cinzel', serif;
+    font-size: 9px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    color: #c9a84c;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .btn:hover { background: #c9a84c18; }
+
+  .fading { opacity: 0 !important; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="tag">✦ Stoic Wisdom</div>
+  <div>
+    <span class="quote-mark">"</span>
+    <div class="quote-text" id="quote-text"></div>
+  </div>
+  <div class="author" id="quote-author"></div>
+  <div class="controls">
+    <div class="dots" id="dots"></div>
+    <button class="btn" id="next-btn">Next →</button>
+  </div>
+</div>
+
+<script>
+const quotes = [
+  { text: "You have power over your mind — not outside events. Realize this, and you will find strength.", author: "Marcus Aurelius" },
+  { text: "Waste no more time arguing about what a good man should be. Be one.", author: "Marcus Aurelius" },
+  { text: "He who fears death will never do anything worthy of a man who is alive.", author: "Seneca" },
+  { text: "Make the best use of what is in your power, and take the rest as it happens.", author: "Epictetus" },
+  { text: "If it is not right, do not do it; if it is not true, do not say it.", author: "Marcus Aurelius" },
+  { text: "Luck is what happens when preparation meets opportunity.", author: "Seneca" },
+  { text: "The happiness of your life depends upon the quality of your thoughts.", author: "Marcus Aurelius" },
+  { text: "We suffer more often in imagination than in reality.", author: "Seneca" },
+  { text: "He is a wise man who does not grieve for the things which he has not, but rejoices for those which he has.", author: "Epictetus" },
+  { text: "Confine yourself to the present.", author: "Marcus Aurelius" },
+  { text: "No man is free who is not master of himself.", author: "Epictetus" },
+  { text: "Begin at once to live, and count each separate day as a separate life.", author: "Seneca" },
+];
+
+const textEl   = document.getElementById('quote-text');
+const authorEl = document.getElementById('quote-author');
+const dotsEl   = document.getElementById('dots');
+const nextBtn  = document.getElementById('next-btn');
+
+const today = new Date();
+const dayIndex = (today.getFullYear() * 366 + today.getMonth() * 31 + today.getDate()) % quotes.length;
+let current = parseInt(sessionStorage.getItem('stoicIdx') ?? dayIndex);
+if (isNaN(current)) current = dayIndex;
+
+const shown = Math.min(quotes.length, 10);
+for (let i = 0; i < shown; i++) {
+  const d = document.createElement('div');
+  d.className = 'dot';
+  d.addEventListener('click', () => show(i));
+  dotsEl.appendChild(d);
+}
+
+function show(idx) {
+  textEl.classList.add('fading');
+  authorEl.classList.add('fading');
+  setTimeout(() => {
+    current = ((idx % quotes.length) + quotes.length) % quotes.length;
+    sessionStorage.setItem('stoicIdx', current);
+    textEl.textContent = quotes[current].text;
+    authorEl.textContent = '— ' + quotes[current].author;
+    [...dotsEl.children].forEach((d, i) => d.classList.toggle('active', i === current % shown));
+    textEl.classList.remove('fading');
+    authorEl.classList.remove('fading');
+  }, 300);
+}
+
+nextBtn.addEventListener('click', () => show(current + 1));
+show(current);
+</script>
+</body>
+</html>
