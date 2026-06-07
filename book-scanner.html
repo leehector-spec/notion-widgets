@@ -856,33 +856,58 @@ async function lookupISBN(isbn) {
   document.getElementById('book-result').innerHTML = '';
 
   try {
-    const res = await fetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&format=json&jscmd=data`);
-    const data = await res.json();
-    const key = `ISBN:${isbn}`;
+    // ── Try Open Library first ──────────────────────────────────────────────
+    showStatus('loading', 'Checking Open Library…');
+    const olRes = await fetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&format=json&jscmd=data`);
+    const olData = await olRes.json();
+    const olKey = `ISBN:${isbn}`;
 
-    if (!data[key]) {
-      setBtReady(true);
-      showStatus('error', 'Book not found in Open Library.');
-      renderManualEntry(isbn);
+    if (olData[olKey]) {
+      const b = olData[olKey];
+      currentBook = {
+        title: b.title || 'Unknown Title',
+        author: (b.authors || []).map(a => a.name).join(', ') || 'Unknown Author',
+        isbn: isbn,
+        year: b.publish_date ? parseInt(b.publish_date.match(/\d{4}/)?.[0]) || null : null,
+        publisher: (b.publishers || []).map(p => p.name).join(', ') || '',
+        pages: b.number_of_pages || null,
+        genres: (b.subjects || []).slice(0,5).map(s => typeof s === 'string' ? s : s.name),
+        cover: b.cover ? (b.cover.large || b.cover.medium || b.cover.small) : null,
+      };
+      showStatus('');
+      await autoSave(currentBook);
       return;
     }
 
-    const b = data[key];
-    currentBook = {
-      title: b.title || 'Unknown Title',
-      author: (b.authors || []).map(a => a.name).join(', ') || 'Unknown Author',
-      isbn: isbn,
-      year: b.publish_date ? parseInt(b.publish_date.match(/\d{4}/)?.[0]) || null : null,
-      publisher: (b.publishers || []).map(p => p.name).join(', ') || '',
-      pages: b.number_of_pages || null,
-      genres: (b.subjects || []).slice(0,5).map(s => typeof s === 'string' ? s : s.name),
-      cover: b.cover ? (b.cover.large || b.cover.medium || b.cover.small) : null,
-      openLibraryUrl: b.url || ''
-    };
+    // ── Fall back to Google Books ───────────────────────────────────────────
+    showStatus('loading', 'Trying Google Books…');
+    const gbRes = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
+    const gbData = await gbRes.json();
 
-    showStatus('');
-    // Auto-save — no confirmation needed
-    await autoSave(currentBook);
+    if (gbData.totalItems > 0 && gbData.items && gbData.items.length > 0) {
+      const v = gbData.items[0].volumeInfo;
+      const gbCover = v.imageLinks
+        ? (v.imageLinks.extraLarge || v.imageLinks.large || v.imageLinks.medium || v.imageLinks.thumbnail || '').replace('http://', 'https://')
+        : null;
+      currentBook = {
+        title: v.title || 'Unknown Title',
+        author: (v.authors || []).join(', ') || 'Unknown Author',
+        isbn: isbn,
+        year: v.publishedDate ? parseInt(v.publishedDate.substring(0, 4)) || null : null,
+        publisher: v.publisher || '',
+        pages: v.pageCount || null,
+        genres: (v.categories || []).slice(0, 5),
+        cover: gbCover,
+      };
+      showStatus('');
+      await autoSave(currentBook);
+      return;
+    }
+
+    // ── Nothing found anywhere ──────────────────────────────────────────────
+    setBtReady(true);
+    showStatus('error', 'Not found in Open Library or Google Books.');
+    renderManualEntry(isbn);
 
   } catch(e) {
     setBtReady(true);
