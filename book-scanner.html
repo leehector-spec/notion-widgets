@@ -692,10 +692,11 @@
 
   <div class="config-section">
     <h3>Notion Connection</h3>
+    <div style="font-size:12px;color:var(--text-mid);font-family:Georgia,serif;line-height:1.7;margin-bottom:14px;">
+      The <strong>Between the Covers</strong> database is already set up in your Notion. You just need to paste your integration token below to connect the app to it.
+    </div>
     <label>Notion Integration Token</label>
     <input type="password" id="notion-token" placeholder="secret_xxxxxxxxxxxxxxxxxxxx">
-    <label>Notion Database ID</label>
-    <input type="text" id="notion-db" placeholder="Paste your database ID here">
     <div style="margin-bottom:14px;">
       <div id="notion-status"></div>
     </div>
@@ -703,22 +704,15 @@
   </div>
 
   <div class="config-section">
-    <h3>Database Setup Guide</h3>
-    <div style="font-size:12px;color:var(--text-mid);font-family:Georgia,serif;line-height:1.8;">
-      <p>Create a new Notion database with these properties:</p>
-      <br>
-      <p><strong>Title</strong> — Title (default)</p>
-      <p><strong>Author</strong> — Text</p>
-      <p><strong>ISBN</strong> — Text</p>
-      <p><strong>Year</strong> — Number</p>
-      <p><strong>Publisher</strong> — Text</p>
-      <p><strong>Pages</strong> — Number</p>
-      <p><strong>Genres</strong> — Multi-select</p>
-      <p><strong>Cover URL</strong> — URL</p>
-      <p><strong>Date Added</strong> — Date</p>
-      <p><strong>Notes</strong> — Text</p>
-      <br>
-      <p>Get your integration token at <strong>notion.so/my-integrations</strong> — create an integration and connect it to your database.</p>
+    <h3>How to get your token</h3>
+    <div style="font-size:12px;color:var(--text-mid);font-family:Georgia,serif;line-height:1.9;">
+      <p>1. Go to <strong>notion.so/my-integrations</strong></p>
+      <p>2. Click <strong>New integration</strong></p>
+      <p>3. Name it "Book Scanner" and save</p>
+      <p>4. Copy the token (starts with <code style="font-size:11px;background:var(--warm-white);padding:1px 5px;border-radius:4px;">secret_</code>)</p>
+      <p>5. Open the <strong>Between the Covers</strong> database in Notion</p>
+      <p>6. Click <strong>···</strong> → Connections → connect "Book Scanner"</p>
+      <p>7. Paste the token above and hit Save</p>
     </div>
   </div>
 </div>
@@ -740,17 +734,17 @@ let library = [];
 function loadConfig() {
   return {
     token: localStorage.getItem('notion_token') || '',
-    dbId: localStorage.getItem('notion_db') || ''
+    dbId: '08a4b897437c4d00b59292c04e40453d'
   };
 }
 
 function saveConfig() {
   const token = document.getElementById('notion-token').value.trim();
-  const dbId = document.getElementById('notion-db').value.trim().replace(/-/g,'').replace(/^.*\//,'');
-  if (!token || !dbId) { showToast('Please fill in both fields'); return; }
+  const dbId = '08a4b897437c4d00b59292c04e40453d';
+  if (!token) { showToast('Please paste your Notion token'); return; }
   localStorage.setItem('notion_token', token);
   localStorage.setItem('notion_db', dbId);
-  document.getElementById('notion-db').value = dbId;
+  
   testConnection(token, dbId);
 }
 
@@ -781,7 +775,7 @@ function showTab(name) {
   if (name === 'setup') {
     const cfg = loadConfig();
     document.getElementById('notion-token').value = cfg.token;
-    document.getElementById('notion-db').value = cfg.dbId;
+    
     if (cfg.token && cfg.dbId) {
       document.getElementById('notion-status').innerHTML = '<span class="status-pill info"><span class="dot"></span>Saved (not tested)</span>';
     }
