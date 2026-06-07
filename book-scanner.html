@@ -924,7 +924,11 @@ async function autoSave(book) {
     if (book.cover) props['Cover URL'] = { url: book.cover };
     props['Date Added'] = { date: { start: new Date().toISOString().split('T')[0] } };
     if (book.genres && book.genres.length) {
-      props['Genres'] = { multi_select: book.genres.slice(0,5).map(g => ({ name: g.substring(0,100) })) };
+      // Split genres that contain commas, flatten, dedupe, limit to 5
+const cleanGenres = [...new Set(
+  book.genres.flatMap(g => g.split(',').map(s => s.trim()).filter(s => s.length > 0 && s.length <= 100))
+)].slice(0, 5);
+props['Genres'] = { multi_select: cleanGenres.map(g => ({ name: g })) };
     }
     const pageBody = { parent: { database_id: cfg.dbId }, properties: props };
     if (book.cover) pageBody.cover = { type: 'external', external: { url: book.cover } };
@@ -1090,7 +1094,10 @@ async function saveToNotion() {
     props['Date Added'] = { date: { start: new Date().toISOString().split('T')[0] } };
 
     if (currentBook.genres && currentBook.genres.length) {
-      props['Genres'] = { multi_select: currentBook.genres.slice(0,5).map(g => ({ name: g.substring(0,100) })) };
+      const cleanGenres2 = [...new Set(
+  currentBook.genres.flatMap(g => g.split(',').map(s => s.trim()).filter(s => s.length > 0 && s.length <= 100))
+)].slice(0, 5);
+props['Genres'] = { multi_select: cleanGenres2.map(g => ({ name: g })) };
     }
 
     const pageBody = { parent: { database_id: cfg.dbId }, properties: props };
