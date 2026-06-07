@@ -858,7 +858,7 @@ async function lookupISBN(isbn) {
   }
 
   setBtReady(false);
-  showStatus('loading', 'Looking up book2026');
+  showStatus('loading', 'Looking up book…');
   document.getElementById('book-result').innerHTML = '';
 
   try {
@@ -867,7 +867,8 @@ async function lookupISBN(isbn) {
     const key = `ISBN:${isbn}`;
 
     if (!data[key]) {
-      setBtReady(true); showStatus('error', 'Book not found in Open Library. You can still add it manually.');
+      setBtReady(true);
+      showStatus('error', 'Book not found in Open Library.');
       renderManualEntry(isbn);
       return;
     }
@@ -886,11 +887,103 @@ async function lookupISBN(isbn) {
     };
 
     showStatus('');
-    renderBookResult(currentBook);
+    // Auto-save — no confirmation needed
+    await autoSave(currentBook);
 
   } catch(e) {
+    setBtReady(true);
     showStatus('error', 'Network error. Check your connection and try again.');
   }
+}
+
+async function autoSave(book) {
+  const cfg = loadConfig();
+
+  // Check if already owned first
+  if (cfg.token && cfg.dbId) {
+    try {
+      const res = await notionRequest(`databases/${cfg.dbId}/query`, 'POST', {
+        filter: { property: 'ISBN', rich_text: { equals: book.isbn } }
+      }, cfg.token);
+      if (res.results && res.results.length > 0) {
+        showBookFlash(book, 'owned');
+        return;
+      }
+    } catch(e) {}
+  }
+
+  if (!cfg.token || !cfg.dbId) {
+    // No Notion configured — just show the book card with manual save option
+    renderBookResult(book);
+    return;
+  }
+
+  try {
+    const props = {
+      'Title': { title: [{ text: { content: book.title } }] },
+      'Author': { rich_text: [{ text: { content: book.author } }] },
+      'ISBN': { rich_text: [{ text: { content: book.isbn } }] },
+      'Publisher': { rich_text: [{ text: { content: book.publisher || '' } }] },
+    };
+    if (book.year) props['Year'] = { number: book.year };
+    if (book.pages) props['Pages'] = { number: book.pages };
+    if (book.cover) props['Cover URL'] = { url: book.cover };
+    props['Date Added'] = { date: { start: new Date().toISOString().split('T')[0] } };
+    if (book.genres && book.genres.length) {
+      props['Genres'] = { multi_select: book.genres.slice(0,5).map(g => ({ name: g.substring(0,100) })) };
+    }
+    const pageBody = { parent: { database_id: cfg.dbId }, properties: props };
+    if (book.cover) pageBody.cover = { type: 'external', external: { url: book.cover } };
+
+    await notionRequest('pages', 'POST', pageBody, cfg.token);
+    incrementCount();
+    libraryCache = null;
+    showBookFlash(book, 'saved');
+
+  } catch(e) {
+    showStatus('error', 'Save failed: ' + e.message);
+    renderBookResult(book);
+  }
+}
+
+function showBookFlash(book, state) {
+  // Show a brief result card then auto-clear after 3s
+  const coverHtml = book.cover
+    ? `<img class="book-cover" src="${book.cover}" alt="cover" onerror="this.style.display='none'">`
+    : `<div class="book-cover-placeholder">📖</div>`;
+
+  const genresHtml = (book.genres || []).slice(0,2).map(g =>
+    `<span class="genre-badge">${esc(g)}</span>`).join('');
+
+  const bannerHtml = state === 'owned'
+    ? `<div class="already-owned-banner">⚠️ Already in your library!</div>`
+    : `<div style="background:var(--green-light);border:1.5px solid var(--green);border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px;font-family:Georgia,serif;font-size:13px;color:var(--green);font-weight:bold;">✓ Added to your library</div>`;
+
+  document.getElementById('lookup-status').innerHTML = '';
+  document.getElementById('book-result').innerHTML = `
+    ${bannerHtml}
+    <div class="book-card">
+      ${coverHtml}
+      <div class="book-info">
+        <h2>${esc(book.title)}</h2>
+        <div class="author">${esc(book.author)}</div>
+        <div class="book-meta">
+          ${book.year ? `${book.year}` : ''}${book.year && book.pages ? ' · ' : ''}${book.pages ? book.pages + ' pp' : ''}
+        </div>
+        <div style="margin-top:6px;">${genresHtml}</div>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:11px;color:var(--text-light);font-family:Georgia,serif;font-style:italic;margin-top:-4px;">Scanning next book in <span id="countdown">3</span>s… <button onclick="clearResult()" style="background:none;border:none;color:var(--sage);font-family:Georgia,serif;font-size:11px;cursor:pointer;text-decoration:underline;">clear now</button></div>
+  `;
+
+  // Countdown and auto-clear
+  let secs = 3;
+  const timer = setInterval(() => {
+    secs--;
+    const el = document.getElementById('countdown');
+    if (el) el.textContent = secs;
+    if (secs <= 0) { clearInterval(timer); clearResult(); }
+  }, 1000);
 }
 
 function showStatus(type, msg) {
@@ -905,59 +998,32 @@ function showStatus(type, msg) {
   }
 }
 
-async function renderBookResult(book) {
-  // check if already owned
-  const cfg = loadConfig();
-  let alreadyOwned = false;
-  let ownedEntry = null;
-
-  if (cfg.token && cfg.dbId) {
-    try {
-      const res = await notionRequest(`databases/${cfg.dbId}/query`, 'POST', {
-        filter: { property: 'ISBN', rich_text: { equals: book.isbn } }
-      }, cfg.token);
-      if (res.results && res.results.length > 0) {
-        alreadyOwned = true;
-        ownedEntry = res.results[0];
-      }
-    } catch(e) {}
-  }
-
+function renderBookResult(book) {
+  // Fallback when Notion is not configured — show card with manual save button
   const coverHtml = book.cover
     ? `<img class="book-cover" src="${book.cover}" alt="cover" onerror="this.style.display='none'">`
     : `<div class="book-cover-placeholder">📖</div>`;
 
   const genresHtml = (book.genres || []).slice(0,3).map(g =>
-    `<span class="genre-badge">${g}</span>`).join('');
-
-  const ownedBanner = alreadyOwned
-    ? `<div class="already-owned-banner">⚠️ You already own this book!</div>`
-    : '';
-
-  const actionHtml = alreadyOwned
-    ? `<div class="action-row"><button class="btn btn-outline" onclick="clearResult()">Scan Another</button></div>`
-    : `<div class="action-row">
-        <button class="btn btn-primary" onclick="saveToNotion()">Add to Library</button>
-        <button class="btn btn-outline" onclick="clearResult()">Cancel</button>
-      </div>`;
+    `<span class="genre-badge">${esc(g)}</span>`).join('');
 
   document.getElementById('book-result').innerHTML = `
-    ${ownedBanner}
+    <div class="notice">⚙️ Notion not configured — set it up to auto-save books.</div>
     <div class="book-card">
       ${coverHtml}
       <div class="book-info">
         <h2>${esc(book.title)}</h2>
         <div class="author">${esc(book.author)}</div>
         <div class="book-meta">
-          ${book.year ? `Published: ${book.year}<br>` : ''}
-          ${book.publisher ? `Publisher: ${esc(book.publisher)}<br>` : ''}
-          ${book.pages ? `${book.pages} pages<br>` : ''}
-          ISBN: ${book.isbn}
+          ${book.year ? `${book.year}` : ''}${book.pages ? ' · ' + book.pages + ' pp' : ''}
         </div>
         <div style="margin-top:6px;">${genresHtml}</div>
       </div>
     </div>
-    ${actionHtml}
+    <div class="action-row">
+      <button class="btn btn-primary" onclick="saveToNotion()">Save to Notion</button>
+      <button class="btn btn-outline" onclick="clearResult()">Skip</button>
+    </div>
   `;
 }
 
