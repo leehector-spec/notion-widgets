@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Between the Covers</title>
+<script src="https://unpkg.com/@zxing/library@0.18.6/umd/index.min.js"></script>
+<style>
+  :root {
+    --sage: #5a7a5a;
+    --sage-light: #e8f0e8;
+    --sage-mid: #8aaa8a;
+    --cream: #faf7f2;
+    --warm-white: #f5f0e8;
+    --text-dark: #2c2820;
+    --text-mid: #5a5248;
+    --text-light: #8a8278;
+    --border: #ddd8ce;
+    --accent: #c4703a;
+    --accent-light: #f5e8dc;
+    --red: #c0392b;
+    --red-light: #fdecea;
+    --green: #2d6a2d;
+    --green-light: #e8f4e8;
+    --card-radius: 14px;
+    --font-serif: 'Georgia', 'Times New Roman', serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Georgia', serif;
+    background: var(--cream);
+    color: var(--text-dark);
+    min-height: 100vh;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  .app-header {
+    background: var(--sage);
+    color: white;
+    padding: 20px 24px 16px;
+    text-align: center;
+    position: relative;
+  }
+
+  .app-header h1 {
+    font-size: 22px;
+    font-weight: normal;
+    letter-spacing: 0.5px;
+    font-family: Georgia, serif;
+  }
+
+  .app-header p {
+    font-size: 12px;
+    opacity: 0.75;
+    margin-top: 3px;
+    font-style: italic;
+    font-family: Georgia, serif;
+  }
+
+  .tab-bar {
+    display: flex;
+    background: white;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 14px 8px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-light);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    font-family: Georgia, serif;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+  }
+
+  .tab.active {
+    color: var(--sage);
+    border-bottom-color: var(--sage);
+    font-weight: bold;
+  }
+
+  .tab-icon { font-size: 16px; display: block; margin-bottom: 2px; }
+
+  .panel { display: none; padding: 20px; }
+  .panel.active { display: block; }
+
+  /* Config panel */
+  .config-section {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .config-section h3 {
+    font-size: 14px;
+    color: var(--sage);
+    margin-bottom: 14px;
+    font-family: Georgia, serif;
+    font-weight: normal;
+    letter-spacing: 0.3px;
+  }
+
+  label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-mid);
+    margin-bottom: 5px;
+    font-family: Georgia, serif;
+  }
+
+  input[type="text"], input[type="password"], select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: Georgia, serif;
+    background: var(--warm-white);
+    color: var(--text-dark);
+    margin-bottom: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input:focus, select:focus {
+    border-color: var(--sage-mid);
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 11px 22px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: Georgia, serif;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+    text-align: center;
+    font-style: italic;
+  }
+
+  .btn-primary {
+    background: var(--sage);
+    color: white;
+    width: 100%;
+  }
+
+  .btn-primary:hover { background: #4a6a4a; }
+  .btn-primary:active { transform: scale(0.98); }
+
+  .btn-accent {
+    background: var(--accent);
+    color: white;
+  }
+
+  .btn-accent:hover { background: #a85e2e; }
+
+  .btn-outline {
+    background: white;
+    color: var(--sage);
+    border: 1.5px solid var(--sage);
+  }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-family: Georgia, serif;
+  }
+
+  .status-pill.success { background: var(--green-light); color: var(--green); }
+  .status-pill.error { background: var(--red-light); color: var(--red); }
+  .status-pill.info { background: var(--sage-light); color: var(--sage); }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  /* Scanner */
+  .scanner-box {
+    background: #111;
+    border-radius: var(--card-radius);
+    overflow: hidden;
+    position: relative;
+    aspect-ratio: 4/3;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #preview-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+  }
+
+  .scanner-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.7);
+    font-family: Georgia, serif;
+    font-size: 13px;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .scan-frame {
+    position: absolute;
+    width: 60%;
+    height: 25%;
+    border: 2px solid rgba(90,122,90,0.8);
+    border-radius: 6px;
+    box-shadow: 0 0 0 2000px rgba(0,0,0,0.4);
+  }
+
+  .scan-line {
+    position: absolute;
+    width: 90%;
+    height: 2px;
+    background: var(--sage-mid);
+    opacity: 0.9;
+    animation: scan 2s ease-in-out infinite;
+  }
+
+  @keyframes scan {
+    0%, 100% { top: 10%; }
+    50% { top: 85%; }
+  }
+
+  .manual-entry {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .manual-entry input {
+    flex: 1;
+    margin-bottom: 0;
+  }
+
+  /* Book result card */
+  .book-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    padding: 18px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .book-cover {
+    width: 70px;
+    min-width: 70px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+    background: var(--warm-white);
+  }
+
+  .book-cover-placeholder {
+    width: 70px;
+    min-width: 70px;
+    height: 100px;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+    background: var(--sage-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: var(--sage-mid);
+  }
+
+  .book-info h2 {
+    font-size: 16px;
+    font-weight: bold;
+    font-family: Georgia, serif;
+    margin-bottom: 4px;
+    color: var(--text-dark);
+    line-height: 1.3;
+  }
+
+  .book-info .author {
+    font-size: 13px;
+    color: var(--text-mid);
+    font-style: italic;
+    margin-bottom: 6px;
+    font-family: Georgia, serif;
+  }
+
+  .book-meta {
+    font-size: 11px;
+    color: var(--text-light);
+    font-family: Georgia, serif;
+    line-height: 1.8;
+  }
+
+  .already-owned-banner {
+    background: var(--accent-light);
+    border: 1.5px solid var(--accent);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: Georgia, serif;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: bold;
+  }
+
+  .action-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .action-row .btn { flex: 1; padding: 10px 8px; font-size: 13px; }
+
+  /* Search */
+  .search-input-wrap {
+    position: relative;
+    margin-bottom: 16px;
+  }
+
+  .search-input-wrap input {
+    padding-left: 36px;
+    margin-bottom: 0;
+    font-size: 15px;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-light);
+    font-size: 16px;
+  }
+
+  .book-list-item {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    transition: border-color 0.15s;
+  }
+
+  .book-list-item:hover { border-color: var(--sage-mid); }
+
+  .book-list-thumb {
+    width: 44px;
+    min-width: 44px;
+    height: 62px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--warm-white);
+  }
+
+  .book-list-thumb-ph {
+    width: 44px;
+    min-width: 44px;
+    height: 62px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--sage-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: var(--sage-mid);
+  }
+
+  .book-list-info h3 {
+    font-size: 14px;
+    font-family: Georgia, serif;
+    font-weight: bold;
+    color: var(--text-dark);
+    margin-bottom: 2px;
+    line-height: 1.3;
+  }
+
+  .book-list-info p {
+    font-size: 12px;
+    color: var(--text-mid);
+    font-style: italic;
+    font-family: Georgia, serif;
+    margin-bottom: 2px;
+  }
+
+  .book-list-info .meta {
+    font-size: 11px;
+    color: var(--text-light);
+    font-family: Georgia, serif;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--text-light);
+    font-family: Georgia, serif;
+    font-style: italic;
+    font-size: 14px;
+  }
+
+  .empty-icon { font-size: 36px; margin-bottom: 12px; }
+
+  .spinner {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #2c2820;
+    color: white;
+    padding: 12px 22px;
+    border-radius: 24px;
+    font-family: Georgia, serif;
+    font-size: 13px;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.3s;
+    white-space: nowrap;
+    max-width: 90vw;
+  }
+
+  .toast.show { opacity: 1; }
+
+  .notice {
+    background: var(--sage-light);
+    border: 1px solid var(--sage-mid);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 12px;
+    color: var(--sage);
+    font-family: Georgia, serif;
+    margin-bottom: 14px;
+    line-height: 1.6;
+  }
+
+  .stats-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .stat-chip {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    text-align: center;
+    flex: 1;
+  }
+
+  .stat-chip .num {
+    font-size: 22px;
+    font-weight: bold;
+    font-family: Georgia, serif;
+    color: var(--sage);
+    display: block;
+  }
+
+  .stat-chip .lbl {
+    font-size: 11px;
+    color: var(--text-light);
+    font-family: Georgia, serif;
+  }
+
+  .genre-badge {
+    display: inline-block;
+    background: var(--sage-light);
+    color: var(--sage);
+    border-radius: 12px;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-family: Georgia, serif;
+    margin-top: 3px;
+    margin-right: 4px;
+  }
+
+  #scan-controls { display: flex; gap: 8px; margin-bottom: 12px; }
+  #scan-controls .btn { flex: 1; padding: 11px 8px; font-size: 13px; }
+
+  .scanner-ready-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--card-radius);
+    pointer-events: none;
+    transition: box-shadow 0.2s;
+  }
+
+  .scanner-ready-ring.active {
+    box-shadow: 0 0 0 3px var(--sage-mid);
+  }
+
+  .bt-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+  }
+
+  .bt-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--sage-mid);
+    flex-shrink: 0;
+    transition: background 0.3s;
+  }
+
+  .bt-dot.ready {
+    background: var(--sage);
+    box-shadow: 0 0 0 3px var(--sage-light);
+    animation: pulse-dot 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { box-shadow: 0 0 0 3px var(--sage-light); }
+    50% { box-shadow: 0 0 0 6px var(--sage-light); }
+  }
+
+  .bt-label {
+    font-family: Georgia, serif;
+    font-size: 13px;
+    color: var(--text-mid);
+    flex: 1;
+  }
+
+  .bt-label strong {
+    display: block;
+    color: var(--text-dark);
+    font-size: 14px;
+    margin-bottom: 1px;
+  }
+
+  .scan-count-badge {
+    background: var(--sage-light);
+    color: var(--sage);
+    border-radius: 12px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-family: Georgia, serif;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <h1>📚 Between the Covers</h1>
+  <p>The Hector Family Library</p>
+</div>
+
+<div class="tab-bar">
+  <button class="tab active" onclick="showTab('scan')">
+    <span class="tab-icon">📷</span>Scan
+  </button>
+  <button class="tab" onclick="showTab('search')">
+    <span class="tab-icon">🔍</span>Search
+  </button>
+  <button class="tab" onclick="showTab('setup')">
+    <span class="tab-icon">⚙️</span>Setup
+  </button>
+</div>
+
+<!-- SCAN TAB -->
+<div id="tab-scan" class="panel active">
+
+  <!-- Bluetooth scanner status bar -->
+  <div class="bt-status" id="bt-status">
+    <div class="bt-dot ready" id="bt-dot"></div>
+    <div class="bt-label">
+      <strong>Ready to Scan</strong>
+      <span id="bt-label-sub">Point Bluetooth scanner at any book barcode</span>
+    </div>
+    <span class="scan-count-badge" id="scan-count" style="display:none;">0 added</span>
+  </div>
+
+  <!-- ISBN input — always visible, auto-focused -->
+  <div class="manual-entry" style="margin-bottom:14px;">
+    <input type="text" id="isbn-input"
+      placeholder="Scan barcode or type ISBN here…"
+      maxlength="20"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      spellcheck="false"
+      inputmode="numeric">
+    <button class="btn btn-accent" onclick="manualLookup()">Go</button>
+  </div>
+
+  <!-- Camera section (collapsed by default) -->
+  <div style="margin-bottom:14px;">
+    <button class="btn btn-outline" id="btn-camera-toggle" onclick="toggleCameraSection()" style="width:100%;font-size:12px;padding:8px;">
+      📷 Use phone camera instead
+    </button>
+  </div>
+
+  <div id="camera-section" style="display:none;margin-bottom:14px;">
+    <div class="scanner-box" id="scanner-box" style="margin-bottom:10px;">
+      <video id="preview-video" playsinline muted></video>
+      <div class="scanner-overlay" id="scanner-overlay">
+        <div style="font-size:36px;margin-bottom:12px;">📖</div>
+        <div>Tap "Start Camera" below</div>
+      </div>
+      <div class="scan-frame" id="scan-frame" style="display:none;"></div>
+      <div class="scan-line" id="scan-line" style="display:none;"></div>
+    </div>
+    <div id="scan-controls">
+      <button class="btn btn-primary" id="btn-camera" onclick="toggleCamera()">Start Camera</button>
+      <button class="btn btn-outline" onclick="switchCamera()" id="btn-switch" style="display:none;">Flip</button>
+    </div>
+  </div>
+
+  <div id="lookup-status"></div>
+  <div id="book-result"></div>
+</div>
+
+<!-- SEARCH TAB -->
+<div id="tab-search" class="panel">
+  <div class="stats-bar" id="stats-bar" style="display:none;">
+    <div class="stat-chip"><span class="num" id="stat-total">0</span><span class="lbl">books</span></div>
+    <div class="stat-chip"><span class="num" id="stat-authors">0</span><span class="lbl">authors</span></div>
+  </div>
+
+  <div class="search-input-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="search-input" placeholder="Search by title, author, genre…" oninput="doSearch(this.value)">
+  </div>
+
+  <div id="search-results">
+    <div class="empty-state">
+      <div class="empty-icon">📚</div>
+      <div>Your library will appear here.<br>Add books with the Scan tab!</div>
+    </div>
+  </div>
+</div>
+
+<!-- SETUP TAB -->
+<div id="tab-setup" class="panel">
+  <div class="notice">
+    Connect to your Notion database to save and search books. You only need to do this once — settings are saved in your browser.
+  </div>
+
+  <div class="config-section">
+    <h3>Notion Connection</h3>
+    <label>Notion Integration Token</label>
+    <input type="password" id="notion-token" placeholder="secret_xxxxxxxxxxxxxxxxxxxx">
+    <label>Notion Database ID</label>
+    <input type="text" id="notion-db" placeholder="Paste your database ID here">
+    <div style="margin-bottom:14px;">
+      <div id="notion-status"></div>
+    </div>
+    <button class="btn btn-primary" onclick="saveConfig()">Save & Test Connection</button>
+  </div>
+
+  <div class="config-section">
+    <h3>Database Setup Guide</h3>
+    <div style="font-size:12px;color:var(--text-mid);font-family:Georgia,serif;line-height:1.8;">
+      <p>Create a new Notion database with these properties:</p>
+      <br>
+      <p><strong>Title</strong> — Title (default)</p>
+      <p><strong>Author</strong> — Text</p>
+      <p><strong>ISBN</strong> — Text</p>
+      <p><strong>Year</strong> — Number</p>
+      <p><strong>Publisher</strong> — Text</p>
+      <p><strong>Pages</strong> — Number</p>
+      <p><strong>Genres</strong> — Multi-select</p>
+      <p><strong>Cover URL</strong> — URL</p>
+      <p><strong>Date Added</strong> — Date</p>
+      <p><strong>Notes</strong> — Text</p>
+      <br>
+      <p>Get your integration token at <strong>notion.so/my-integrations</strong> — create an integration and connect it to your database.</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+let codeReader = null;
+let cameraActive = false;
+let currentCamera = 'environment';
+let deviceList = [];
+let currentDeviceIdx = 0;
+let scannedISBN = null;
+let currentBook = null;
+let library = [];
+
+// ── Config persistence ─────────────────────────────────────────────────────
+function loadConfig() {
+  return {
+    token: localStorage.getItem('notion_token') || '',
+    dbId: localStorage.getItem('notion_db') || ''
+  };
+}
+
+function saveConfig() {
+  const token = document.getElementById('notion-token').value.trim();
+  const dbId = document.getElementById('notion-db').value.trim().replace(/-/g,'').replace(/^.*\//,'');
+  if (!token || !dbId) { showToast('Please fill in both fields'); return; }
+  localStorage.setItem('notion_token', token);
+  localStorage.setItem('notion_db', dbId);
+  document.getElementById('notion-db').value = dbId;
+  testConnection(token, dbId);
+}
+
+async function testConnection(token, dbId) {
+  const el = document.getElementById('notion-status');
+  el.innerHTML = '<span class="status-pill info"><span class="dot"></span>Connecting…</span>';
+  try {
+    const res = await notionRequest(`databases/${dbId}`, 'GET', null, token);
+    if (res.id) {
+      el.innerHTML = '<span class="status-pill success"><span class="dot"></span>Connected ✓</span>';
+      showToast('Connected to Notion!');
+      loadLibrary();
+    } else {
+      el.innerHTML = '<span class="status-pill error"><span class="dot"></span>Connection failed</span>';
+    }
+  } catch(e) {
+    el.innerHTML = '<span class="status-pill error"><span class="dot"></span>' + (e.message || 'Error') + '</span>';
+  }
+}
+
+// ── Tabs ───────────────────────────────────────────────────────────────────
+function showTab(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (name === 'search') { loadLibrary(); }
+  if (name === 'setup') {
+    const cfg = loadConfig();
+    document.getElementById('notion-token').value = cfg.token;
+    document.getElementById('notion-db').value = cfg.dbId;
+    if (cfg.token && cfg.dbId) {
+      document.getElementById('notion-status').innerHTML = '<span class="status-pill info"><span class="dot"></span>Saved (not tested)</span>';
+    }
+  }
+  if (name !== 'scan' && cameraActive) { stopCamera(); }
+  if (name === 'scan') { setTimeout(focusISBN, 50); }
+}
+
+// ── Camera / ZXing ─────────────────────────────────────────────────────────
+async function toggleCamera() {
+  if (cameraActive) { stopCamera(); return; }
+  try {
+    if (!window.ZXing) { showToast('Scanner library loading…'); return; }
+    codeReader = new ZXing.BrowserMultiFormatReader();
+    deviceList = await ZXing.BrowserCodeReader.listVideoInputDevices();
+    if (!deviceList.length) { showToast('No camera found'); return; }
+
+    // prefer back camera
+    const backIdx = deviceList.findIndex(d => /back|rear|environment/i.test(d.label));
+    currentDeviceIdx = backIdx >= 0 ? backIdx : 0;
+
+    await startDecoding();
+    cameraActive = true;
+    document.getElementById('btn-camera').textContent = 'Stop Camera';
+    document.getElementById('btn-switch').style.display = deviceList.length > 1 ? 'inline-block' : 'none';
+    document.getElementById('scan-frame').style.display = 'block';
+    document.getElementById('scan-line').style.display = 'block';
+    document.getElementById('scanner-overlay').style.display = 'none';
+    document.getElementById('preview-video').style.display = 'block';
+  } catch(e) {
+    showToast('Camera error: ' + e.message);
+  }
+}
+
+async function startDecoding() {
+  const video = document.getElementById('preview-video');
+  const deviceId = deviceList[currentDeviceIdx]?.deviceId;
+  await codeReader.decodeFromVideoDevice(deviceId, video, (result, err) => {
+    if (result) {
+      const isbn = result.getText().replace(/[^0-9X]/gi, '');
+      if (isbn.length >= 10 && isbn !== scannedISBN) {
+        scannedISBN = isbn;
+        stopCamera();
+        document.getElementById('isbn-input').value = isbn;
+        lookupISBN(isbn);
+      }
+    }
+  });
+}
+
+function stopCamera() {
+  if (codeReader) { codeReader.reset(); codeReader = null; }
+  cameraActive = false;
+  document.getElementById('btn-camera').textContent = 'Start Camera';
+  document.getElementById('btn-switch').style.display = 'none';
+  document.getElementById('scan-frame').style.display = 'none';
+  document.getElementById('scan-line').style.display = 'none';
+  document.getElementById('scanner-overlay').style.display = 'flex';
+  document.getElementById('preview-video').style.display = 'none';
+}
+
+async function switchCamera() {
+  if (!deviceList.length) return;
+  currentDeviceIdx = (currentDeviceIdx + 1) % deviceList.length;
+  if (codeReader) codeReader.reset();
+  await startDecoding();
+}
+
+// ── Open Library lookup ────────────────────────────────────────────────────
+async function lookupISBN(isbn) {
+  isbn = isbn.replace(/[^0-9X]/gi,'');
+  if (!isbn || (isbn.length !== 10 && isbn.length !== 13)) {
+    showStatus('error', 'Please enter a valid 10 or 13-digit ISBN.'); return;
+  }
+
+  setBtReady(false);
+  showStatus('loading', 'Looking up book2026');
+  document.getElementById('book-result').innerHTML = '';
+
+  try {
+    const res = await fetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&format=json&jscmd=data`);
+    const data = await res.json();
+    const key = `ISBN:${isbn}`;
+
+    if (!data[key]) {
+      setBtReady(true); showStatus('error', 'Book not found in Open Library. You can still add it manually.');
+      renderManualEntry(isbn);
+      return;
+    }
+
+    const b = data[key];
+    currentBook = {
+      title: b.title || 'Unknown Title',
+      author: (b.authors || []).map(a => a.name).join(', ') || 'Unknown Author',
+      isbn: isbn,
+      year: b.publish_date ? parseInt(b.publish_date.match(/\d{4}/)?.[0]) || null : null,
+      publisher: (b.publishers || []).map(p => p.name).join(', ') || '',
+      pages: b.number_of_pages || null,
+      genres: (b.subjects || []).slice(0,5).map(s => typeof s === 'string' ? s : s.name),
+      cover: b.cover ? (b.cover.large || b.cover.medium || b.cover.small) : null,
+      openLibraryUrl: b.url || ''
+    };
+
+    showStatus('');
+    renderBookResult(currentBook);
+
+  } catch(e) {
+    showStatus('error', 'Network error. Check your connection and try again.');
+  }
+}
+
+function showStatus(type, msg) {
+  const el = document.getElementById('lookup-status');
+  if (!msg) { el.innerHTML = ''; return; }
+  if (type === 'loading') {
+    el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-light);font-family:Georgia,serif;font-style:italic;font-size:13px;"><span class="spinner" style="border-color:rgba(90,122,90,0.3);border-top-color:var(--sage);"></span>${msg}</div>`;
+  } else if (type === 'error') {
+    el.innerHTML = `<div class="status-pill error" style="margin-bottom:12px;"><span class="dot"></span>${msg}</div>`;
+  } else {
+    el.innerHTML = `<div class="status-pill success" style="margin-bottom:12px;"><span class="dot"></span>${msg}</div>`;
+  }
+}
+
+async function renderBookResult(book) {
+  // check if already owned
+  const cfg = loadConfig();
+  let alreadyOwned = false;
+  let ownedEntry = null;
+
+  if (cfg.token && cfg.dbId) {
+    try {
+      const res = await notionRequest(`databases/${cfg.dbId}/query`, 'POST', {
+        filter: { property: 'ISBN', rich_text: { equals: book.isbn } }
+      }, cfg.token);
+      if (res.results && res.results.length > 0) {
+        alreadyOwned = true;
+        ownedEntry = res.results[0];
+      }
+    } catch(e) {}
+  }
+
+  const coverHtml = book.cover
+    ? `<img class="book-cover" src="${book.cover}" alt="cover" onerror="this.style.display='none'">`
+    : `<div class="book-cover-placeholder">📖</div>`;
+
+  const genresHtml = (book.genres || []).slice(0,3).map(g =>
+    `<span class="genre-badge">${g}</span>`).join('');
+
+  const ownedBanner = alreadyOwned
+    ? `<div class="already-owned-banner">⚠️ You already own this book!</div>`
+    : '';
+
+  const actionHtml = alreadyOwned
+    ? `<div class="action-row"><button class="btn btn-outline" onclick="clearResult()">Scan Another</button></div>`
+    : `<div class="action-row">
+        <button class="btn btn-primary" onclick="saveToNotion()">Add to Library</button>
+        <button class="btn btn-outline" onclick="clearResult()">Cancel</button>
+      </div>`;
+
+  document.getElementById('book-result').innerHTML = `
+    ${ownedBanner}
+    <div class="book-card">
+      ${coverHtml}
+      <div class="book-info">
+        <h2>${esc(book.title)}</h2>
+        <div class="author">${esc(book.author)}</div>
+        <div class="book-meta">
+          ${book.year ? `Published: ${book.year}<br>` : ''}
+          ${book.publisher ? `Publisher: ${esc(book.publisher)}<br>` : ''}
+          ${book.pages ? `${book.pages} pages<br>` : ''}
+          ISBN: ${book.isbn}
+        </div>
+        <div style="margin-top:6px;">${genresHtml}</div>
+      </div>
+    </div>
+    ${actionHtml}
+  `;
+}
+
+function renderManualEntry(isbn) {
+  document.getElementById('book-result').innerHTML = `
+    <div class="book-card" style="flex-direction:column;">
+      <div style="font-size:13px;color:var(--text-mid);font-family:Georgia,serif;margin-bottom:14px;">Add this book manually:</div>
+      <label>Title</label><input type="text" id="man-title" placeholder="Book title">
+      <label>Author</label><input type="text" id="man-author" placeholder="Author name">
+      <label>Year</label><input type="text" id="man-year" placeholder="Publication year">
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary" style="flex:1;" onclick="saveManual('${isbn}')">Add to Library</button>
+        <button class="btn btn-outline" onclick="clearResult()">Cancel</button>
+      </div>
+    </div>
+  `;
+}
+
+function clearResult() {
+  document.getElementById('book-result').innerHTML = '';
+  document.getElementById('lookup-status').innerHTML = '';
+  currentBook = null;
+  scannedISBN = null;
+  focusISBN();
+}
+
+// ── Notion API ─────────────────────────────────────────────────────────────
+async function notionRequest(path, method, body, token) {
+  token = token || loadConfig().token;
+  const opts = {
+    method,
+    headers: {
+      'Authorization': 'Bearer ' + token,
+      'Content-Type': 'application/json',
+      'Notion-Version': '2022-06-28'
+    }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(`https://api.notion.com/v1/${path}`, opts);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Notion error');
+  return data;
+}
+
+async function saveToNotion() {
+  if (!currentBook) return;
+  const cfg = loadConfig();
+  if (!cfg.token || !cfg.dbId) {
+    showToast('Please configure Notion in the Setup tab first.');
+    showTab('setup');
+    return;
+  }
+
+  const btn = document.querySelector('#book-result .btn-primary');
+  btn.innerHTML = '<span class="spinner"></span>Saving…';
+  btn.disabled = true;
+
+  try {
+    const props = {
+      'Title': { title: [{ text: { content: currentBook.title } }] },
+      'Author': { rich_text: [{ text: { content: currentBook.author } }] },
+      'ISBN': { rich_text: [{ text: { content: currentBook.isbn } }] },
+      'Publisher': { rich_text: [{ text: { content: currentBook.publisher || '' } }] },
+    };
+
+    if (currentBook.year) props['Year'] = { number: currentBook.year };
+    if (currentBook.pages) props['Pages'] = { number: currentBook.pages };
+    if (currentBook.cover) props['Cover URL'] = { url: currentBook.cover };
+
+    props['Date Added'] = { date: { start: new Date().toISOString().split('T')[0] } };
+
+    if (currentBook.genres && currentBook.genres.length) {
+      props['Genres'] = { multi_select: currentBook.genres.slice(0,5).map(g => ({ name: g.substring(0,100) })) };
+    }
+
+    const pageBody = { parent: { database_id: cfg.dbId }, properties: props };
+
+    // add cover as page icon if available
+    if (currentBook.cover) {
+      pageBody.cover = { type: 'external', external: { url: currentBook.cover } };
+    }
+
+    await notionRequest('pages', 'POST', pageBody, cfg.token);
+    showToast('✓ ' + currentBook.title + ' added to your library!');
+    incrementCount();
+    libraryCache = null;
+    clearResult();
+
+
+
+
+
+  } catch(e) {
+    btn.innerHTML = 'Add to Library';
+    btn.disabled = false;
+    showToast('Error: ' + e.message);
+  }
+}
+
+async function saveManual(isbn) {
+  const title = document.getElementById('man-title').value.trim();
+  const author = document.getElementById('man-author').value.trim();
+  const year = parseInt(document.getElementById('man-year').value.trim()) || null;
+  if (!title) { showToast('Title is required'); return; }
+
+  currentBook = { title, author, isbn, year, publisher: '', pages: null, genres: [], cover: null };
+  await saveToNotion();
+}
+
+// ── Library / Search ───────────────────────────────────────────────────────
+let libraryCache = null;
+let libraryLoadTime = 0;
+
+async function loadLibrary() {
+  const cfg = loadConfig();
+  if (!cfg.token || !cfg.dbId) {
+    document.getElementById('search-results').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">⚙️</div>
+        <div>Configure Notion in the Setup tab to see your library.</div>
+      </div>`;
+    return;
+  }
+
+  const now = Date.now();
+  if (libraryCache && (now - libraryLoadTime) < 60000) {
+    renderLibrary(libraryCache, document.getElementById('search-input').value);
+    return;
+  }
+
+  document.getElementById('search-results').innerHTML = `
+    <div style="text-align:center;padding:30px;color:var(--text-light);font-family:Georgia,serif;font-style:italic;font-size:13px;">
+      <span class="spinner" style="border-color:rgba(90,122,90,0.3);border-top-color:var(--sage);"></span> Loading library…
+    </div>`;
+
+  try {
+    let books = [];
+    let cursor = undefined;
+    do {
+      const body = { page_size: 100 };
+      if (cursor) body.start_cursor = cursor;
+      const res = await notionRequest(`databases/${cfg.dbId}/query`, 'POST', body, cfg.token);
+      for (const page of res.results) {
+        const p = page.properties;
+        books.push({
+          id: page.id,
+          title: getTitle(p['Title']) || getTitle(p['Name']) || 'Untitled',
+          author: getText(p['Author']) || '',
+          isbn: getText(p['ISBN']) || '',
+          year: getNum(p['Year']) || '',
+          publisher: getText(p['Publisher']) || '',
+          pages: getNum(p['Pages']) || '',
+          genres: getMultiSelect(p['Genres']) || [],
+          cover: getUrl(p['Cover URL']) || ''
+        });
+      }
+      cursor = res.has_more ? res.next_cursor : undefined;
+    } while (cursor);
+
+    books.sort((a,b) => a.title.localeCompare(b.title));
+    libraryCache = books;
+    libraryLoadTime = Date.now();
+    renderLibrary(books, document.getElementById('search-input').value);
+
+  } catch(e) {
+    document.getElementById('search-results').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">⚠️</div>
+        <div>Could not load library: ${esc(e.message)}</div>
+      </div>`;
+  }
+}
+
+function renderLibrary(books, query) {
+  // update stats
+  const uniqueAuthors = new Set(books.map(b => b.author).filter(Boolean));
+  document.getElementById('stat-total').textContent = books.length;
+  document.getElementById('stat-authors').textContent = uniqueAuthors.size;
+  document.getElementById('stats-bar').style.display = books.length ? 'flex' : 'none';
+
+  let filtered = books;
+  if (query && query.trim()) {
+    const q = query.toLowerCase();
+    filtered = books.filter(b =>
+      b.title.toLowerCase().includes(q) ||
+      b.author.toLowerCase().includes(q) ||
+      b.isbn.includes(q) ||
+      b.genres.some(g => g.toLowerCase().includes(q)) ||
+      b.publisher.toLowerCase().includes(q)
+    );
+  }
+
+  if (!filtered.length) {
+    document.getElementById('search-results').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <div>${query ? 'No books match "' + esc(query) + '"' : 'Your library is empty.<br>Start scanning!'}</div>
+      </div>`;
+    return;
+  }
+
+  document.getElementById('search-results').innerHTML = filtered.map(b => {
+    const thumbHtml = b.cover
+      ? `<img class="book-list-thumb" src="${b.cover}" alt="cover" onerror="this.outerHTML='<div class=book-list-thumb-ph>📖</div>'">`
+      : `<div class="book-list-thumb-ph">📖</div>`;
+
+    const genresHtml = b.genres.slice(0,2).map(g => `<span class="genre-badge">${esc(g)}</span>`).join('');
+
+    return `<div class="book-list-item">
+      ${thumbHtml}
+      <div class="book-list-info" style="flex:1;min-width:0;">
+        <h3>${esc(b.title)}</h3>
+        <p>${esc(b.author || 'Unknown author')}</p>
+        <div class="meta">${b.year ? b.year + ' · ' : ''}${b.pages ? b.pages + ' pp' : ''}</div>
+        <div>${genresHtml}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function doSearch(q) {
+  if (libraryCache) {
+    renderLibrary(libraryCache, q);
+  } else {
+    loadLibrary();
+  }
+}
+
+// ── Notion property helpers ────────────────────────────────────────────────
+function getTitle(prop) { return prop?.title?.[0]?.text?.content || prop?.title?.[0]?.plain_text || ''; }
+function getText(prop) { return prop?.rich_text?.[0]?.text?.content || prop?.rich_text?.[0]?.plain_text || ''; }
+function getNum(prop) { return prop?.number ?? null; }
+function getUrl(prop) { return prop?.url || ''; }
+function getMultiSelect(prop) { return (prop?.multi_select || []).map(s => s.name); }
+
+// ── Utilities ──────────────────────────────────────────────────────────────
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ── Bluetooth / keyboard scanner support ───────────────────────────────────
+let scanBuffer = '';
+let scanTimer = null;
+let sessionCount = 0;
+
+function initBluetooth() {
+  // Scanners fire characters very rapidly then send Enter.
+  // We buffer everything typed into the isbn field and fire on Enter.
+  const input = document.getElementById('isbn-input');
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const val = input.value.trim();
+      if (val) manualLookup();
+    }
+  });
+
+  // Also handle global keydown so scanning works even if focus slips
+  document.addEventListener('keydown', (e) => {
+    if (document.getElementById('tab-scan').classList.contains('active')) {
+      const input = document.getElementById('isbn-input');
+      // If focus is not in an input/textarea, redirect to isbn field
+      const tag = document.activeElement.tagName;
+      if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT') {
+        if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
+          input.focus();
+          // Don't preventDefault — let the character land in the field
+        }
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const val = input.value.trim();
+          if (val) manualLookup();
+        }
+      }
+    }
+  });
+}
+
+function manualLookup() {
+  const val = document.getElementById('isbn-input').value.trim();
+  if (!val) return;
+  lookupISBN(val);
+}
+
+function focusISBN() {
+  const input = document.getElementById('isbn-input');
+  input.value = '';
+  input.focus();
+  setBtReady(true);
+}
+
+function setBtReady(ready) {
+  const dot = document.getElementById('bt-dot');
+  const sub = document.getElementById('bt-label-sub');
+  if (ready) {
+    dot.classList.add('ready');
+    sub.textContent = 'Point Bluetooth scanner at any book barcode';
+  } else {
+    dot.classList.remove('ready');
+    sub.textContent = 'Looking up book…';
+  }
+}
+
+function incrementCount() {
+  sessionCount++;
+  const badge = document.getElementById('scan-count');
+  badge.style.display = 'inline-block';
+  badge.textContent = sessionCount + (sessionCount === 1 ? ' added' : ' added');
+}
+
+function toggleCameraSection() {
+  const section = document.getElementById('camera-section');
+  const btn = document.getElementById('btn-camera-toggle');
+  const visible = section.style.display !== 'none';
+  section.style.display = visible ? 'none' : 'block';
+  btn.textContent = visible ? '📷 Use phone camera instead' : '📷 Hide camera';
+  if (visible && cameraActive) stopCamera();
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  initBluetooth();
+  focusISBN();
+  const cfg = loadConfig();
+  if (!cfg.token || !cfg.dbId) {
+    setTimeout(() => showToast('Tap ⚙️ Setup to connect Notion'), 800);
+  }
+});
+</script>
+</body>
+</html>
