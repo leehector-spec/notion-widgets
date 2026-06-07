@@ -1056,7 +1056,7 @@ async function notionRequest(path, method, body, token) {
     }
   };
   if (body) opts.body = JSON.stringify(body);
-  const res = await fetch(`https://api.notion.com/v1/${path}`, opts);
+  const res = await fetch(`https://notion-proxy.lee-hector74.workers.dev/notion-proxy/${path}`, opts);
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || 'Notion error');
   return data;
