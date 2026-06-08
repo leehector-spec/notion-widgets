@@ -1,0 +1,335 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.app { padding: 1rem 0; }
+.nav { display: flex; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.nav button { font-size: 13px; padding: 6px 14px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); cursor: pointer; transition: background 0.15s; }
+.nav button.active { background: var(--color-background-secondary); border-color: var(--color-border-primary); font-weight: 500; }
+.nav button:hover { background: var(--color-background-secondary); }
+.section { display: none; }
+.section.visible { display: block; }
+.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 12px; }
+.badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: var(--border-radius-md); margin-bottom: 8px; }
+.badge-blue { background: var(--color-background-info); color: var(--color-text-info); }
+.badge-green { background: var(--color-background-success); color: var(--color-text-success); }
+.badge-amber { background: var(--color-background-warning); color: var(--color-text-warning); }
+.badge-red { background: var(--color-background-danger); color: var(--color-text-danger); }
+h3 { font-size: 15px; font-weight: 500; margin-bottom: 6px; color: var(--color-text-primary); }
+p, li { font-size: 14px; color: var(--color-text-secondary); line-height: 1.6; }
+ul { padding-left: 1.2rem; margin-top: 4px; }
+.flashcard-wrap { perspective: 800px; margin-bottom: 1.5rem; }
+.flashcard { width: 100%; min-height: 160px; position: relative; transform-style: preserve-3d; transition: transform 0.5s; cursor: pointer; }
+.flashcard.flipped { transform: rotateY(180deg); }
+.fc-face { position: absolute; width: 100%; min-height: 160px; backface-visibility: hidden; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.5rem; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+.fc-back { transform: rotateY(180deg); }
+.fc-label { font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+.fc-text { font-size: 16px; font-weight: 500; color: var(--color-text-primary); }
+.fc-answer { font-size: 14px; color: var(--color-text-secondary); line-height: 1.6; }
+.fc-controls { display: flex; gap: 8px; justify-content: space-between; align-items: center; }
+.fc-counter { font-size: 13px; color: var(--color-text-secondary); }
+.quiz-q { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 1rem; line-height: 1.5; }
+.quiz-opt { display: block; width: 100%; text-align: left; padding: 10px 14px; margin-bottom: 8px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); font-size: 14px; cursor: pointer; transition: background 0.15s; }
+.quiz-opt:hover:not(:disabled) { background: var(--color-background-secondary); }
+.quiz-opt.correct { background: var(--color-background-success); border-color: var(--color-border-success); color: var(--color-text-success); }
+.quiz-opt.wrong { background: var(--color-background-danger); border-color: var(--color-border-danger); color: var(--color-text-danger); }
+.quiz-opt.reveal { background: var(--color-background-success); border-color: var(--color-border-success); color: var(--color-text-success); }
+.explanation { font-size: 13px; padding: 10px 14px; border-radius: var(--border-radius-md); background: var(--color-background-secondary); color: var(--color-text-secondary); margin-top: 8px; line-height: 1.5; }
+.score-bar { display: flex; gap: 8px; margin-bottom: 1.5rem; align-items: center; }
+.score-pill { font-size: 13px; padding: 4px 12px; border-radius: 99px; background: var(--color-background-secondary); color: var(--color-text-secondary); }
+.progress { height: 6px; flex: 1; background: var(--color-background-secondary); border-radius: 99px; overflow: hidden; }
+.progress-fill { height: 100%; background: #1D9E75; border-radius: 99px; transition: width 0.3s; }
+.topic-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 1.5rem; }
+.topic-btn { padding: 12px; border-radius: var(--border-radius-lg); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); cursor: pointer; text-align: left; transition: border-color 0.15s; }
+.topic-btn:hover { border-color: var(--color-border-primary); }
+.topic-btn.selected { border: 1.5px solid #378ADD; }
+.topic-btn .tb-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 2px; }
+.topic-btn .tb-count { font-size: 11px; color: var(--color-text-tertiary); }
+</style>
+
+<div class="app">
+  <h2 style="sr-only">ISC CPA Exam Study Guide for Kristen</h2>
+  <div style="margin-bottom: 1.25rem;">
+    <p style="font-size: 13px; color: var(--color-text-secondary);">ISC section — Information Systems & Controls</p>
+    <h1 style="font-size: 22px; font-weight: 500; color: var(--color-text-primary);">Kristen's CPA Study Guide</h1>
+  </div>
+
+  <div class="nav">
+    <button class="active" onclick="showTab('overview')"><i class="ti ti-list" aria-hidden="true"></i> Overview</button>
+    <button onclick="showTab('flashcards')"><i class="ti ti-cards" aria-hidden="true"></i> Flashcards</button>
+    <button onclick="showTab('quiz')"><i class="ti ti-clipboard-check" aria-hidden="true"></i> Quiz</button>
+    <button onclick="showTab('cheatsheet')"><i class="ti ti-file-text" aria-hidden="true"></i> Cheat sheet</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div id="overview" class="section visible">
+    <div class="card">
+      <span class="badge badge-red">High priority</span>
+      <h3>SOC engagements (15–25%)</h3>
+      <p>SOC 1, 2, 3 reports — types, users, auditor responsibilities. Know the differences cold.</p>
+    </div>
+    <div class="card">
+      <span class="badge badge-red">High priority</span>
+      <h3>Information systems & data management (25–35%)</h3>
+      <p>IT governance, general IT controls (GITCs), application controls, SDLC, cloud computing, data analytics.</p>
+    </div>
+    <div class="card">
+      <span class="badge badge-red">High priority</span>
+      <h3>Security, confidentiality & privacy (25–35%)</h3>
+      <p>Cybersecurity frameworks, access controls, threats & attacks, encryption, privacy laws (GDPR, HIPAA, CCPA).</p>
+    </div>
+    <div class="card">
+      <span class="badge badge-amber">Medium priority</span>
+      <h3>Availability, processing integrity & confidentiality (15–25%)</h3>
+      <p>Business continuity, disaster recovery, RTO/RPO, backup types, Trust Services Criteria.</p>
+    </div>
+    <div class="card">
+      <span class="badge badge-green">Lower priority</span>
+      <h3>Emerging technologies (5–15%)</h3>
+      <p>Blockchain, AI/ML, RPA, IoT — audit implications and governance considerations.</p>
+    </div>
+  </div>
+
+  <!-- FLASHCARDS -->
+  <div id="flashcards" class="section">
+    <div style="margin-bottom: 1rem;">
+      <label style="font-size: 13px; color: var(--color-text-secondary);">Topic filter</label>
+      <select id="fc-topic-filter" onchange="filterFlashcards()" style="margin-left: 8px; font-size: 13px; padding: 4px 8px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary);">
+        <option value="all">All topics</option>
+        <option value="SOC">SOC reports</option>
+        <option value="IT Controls">IT controls</option>
+        <option value="Security">Security</option>
+        <option value="BCP/DRP">BCP / DRP</option>
+        <option value="Emerging">Emerging tech</option>
+      </select>
+    </div>
+    <div class="flashcard-wrap">
+      <div class="flashcard" id="flashcard" onclick="flipCard()">
+        <div class="fc-face fc-front">
+          <div class="fc-label">Term</div>
+          <div class="fc-text" id="fc-question"></div>
+        </div>
+        <div class="fc-face fc-back">
+          <div class="fc-label">Definition</div>
+          <div class="fc-answer" id="fc-answer"></div>
+        </div>
+      </div>
+    </div>
+    <p style="font-size: 12px; color: var(--color-text-tertiary); text-align: center; margin-bottom: 1rem;">Tap the card to flip it</p>
+    <div class="fc-controls">
+      <button onclick="prevCard()"><i class="ti ti-arrow-left" aria-hidden="true"></i> Previous</button>
+      <span class="fc-counter" id="fc-counter">1 / 1</span>
+      <button onclick="nextCard()">Next <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="quiz" class="section">
+    <div class="score-bar">
+      <span class="score-pill" id="quiz-score">Score: 0 / 0</span>
+      <div class="progress"><div class="progress-fill" id="quiz-progress" style="width: 0%"></div></div>
+      <button onclick="resetQuiz()" style="font-size: 12px; padding: 4px 10px;">Reset</button>
+    </div>
+    <div id="quiz-container"></div>
+  </div>
+
+  <!-- CHEAT SHEET -->
+  <div id="cheatsheet" class="section">
+    <div class="card">
+      <h3>SOC report comparison</h3>
+      <table style="width: 100%; font-size: 13px; border-collapse: collapse; margin-top: 8px;">
+        <thead>
+          <tr>
+            <th style="text-align:left; padding: 6px 8px; border-bottom: 0.5px solid var(--color-border-secondary); color: var(--color-text-secondary); font-weight: 500;">Report</th>
+            <th style="text-align:left; padding: 6px 8px; border-bottom: 0.5px solid var(--color-border-secondary); color: var(--color-text-secondary); font-weight: 500;">Focus</th>
+            <th style="text-align:left; padding: 6px 8px; border-bottom: 0.5px solid var(--color-border-secondary); color: var(--color-text-secondary); font-weight: 500;">Users</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td style="padding:6px 8px; color:var(--color-text-primary);">SOC 1</td><td style="padding:6px 8px; color:var(--color-text-secondary);">ICFR — financial reporting controls</td><td style="padding:6px 8px; color:var(--color-text-secondary);">User entities & auditors</td></tr>
+          <tr><td style="padding:6px 8px; color:var(--color-text-primary);">SOC 2</td><td style="padding:6px 8px; color:var(--color-text-secondary);">Trust Services Criteria (security, availability, etc.)</td><td style="padding:6px 8px; color:var(--color-text-secondary);">Restricted — management & auditors</td></tr>
+          <tr><td style="padding:6px 8px; color:var(--color-text-primary);">SOC 3</td><td style="padding:6px 8px; color:var(--color-text-secondary);">Same as SOC 2 but general use</td><td style="padding:6px 8px; color:var(--color-text-secondary);">Public — anyone</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h3>Type 1 vs Type 2</h3>
+      <ul>
+        <li><strong style="font-weight:500; color:var(--color-text-primary);">Type 1</strong> — Controls are suitably designed at a point in time</li>
+        <li><strong style="font-weight:500; color:var(--color-text-primary);">Type 2</strong> — Controls are suitably designed AND operating effectively over a period of time</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>GITCs vs application controls</h3>
+      <ul>
+        <li><strong style="font-weight:500; color:var(--color-text-primary);">GITCs</strong> — Pervasive controls over the IT environment: access, change management, operations, program development</li>
+        <li><strong style="font-weight:500; color:var(--color-text-primary);">Application controls</strong> — Controls within a specific app: input, processing, output</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>RTO vs RPO</h3>
+      <ul>
+        <li><strong style="font-weight:500; color:var(--color-text-primary);">RTO</strong> (Recovery Time Objective) — How long can we be down? Maximum tolerable downtime.</li>
+        <li><strong style="font-weight:500; color:var(--color-text-primary);">RPO</strong> (Recovery Point Objective) — How much data can we lose? Maximum tolerable data loss.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Encryption types</h3>
+      <ul>
+        <li><strong style="font-weight:500; color:var(--color-text-primary);">Symmetric</strong> — Same key to encrypt and decrypt. Fast, used for large data.</li>
+        <li><strong style="font-weight:500; color:var(--color-text-primary);">Asymmetric</strong> — Public key encrypts, private key decrypts. Used for secure transmission.</li>
+        <li><strong style="font-weight:500; color:var(--color-text-primary);">Hashing</strong> — One-way transformation. Used for passwords and data integrity.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Backup types</h3>
+      <ul>
+        <li><strong style="font-weight:500; color:var(--color-text-primary);">Full</strong> — Everything. Slowest to back up, fastest to restore.</li>
+        <li><strong style="font-weight:500; color:var(--color-text-primary);">Incremental</strong> — Only changes since last backup. Fastest to back up, slowest to restore.</li>
+        <li><strong style="font-weight:500; color:var(--color-text-primary);">Differential</strong> — Changes since last full backup. Middle ground.</li>
+      </ul>
+    </div>
+    <button onclick="sendPrompt('Quiz me on ISC CPA exam cheat sheet topics')" style="margin-top: 8px; font-size: 13px; padding: 8px 16px; width: 100%;">Quiz me on these topics ↗</button>
+  </div>
+</div>
+
+<script>
+const flashcards = [
+  { topic: "SOC", q: "SOC 1", a: "A report on controls at a service organization relevant to user entities' internal control over financial reporting (ICFR). Restricted use." },
+  { topic: "SOC", q: "SOC 2", a: "A report on controls at a service organization relevant to security, availability, processing integrity, confidentiality, and/or privacy. Restricted use." },
+  { topic: "SOC", q: "SOC 3", a: "Same scope as SOC 2 but intended for general public distribution. No detailed description of tests and results." },
+  { topic: "SOC", q: "Type 1 report", a: "Describes the service organization's system and whether controls are suitably designed at a specific point in time." },
+  { topic: "SOC", q: "Type 2 report", a: "Describes the system and tests whether controls are suitably designed AND operating effectively over a specified period (usually 6–12 months)." },
+  { topic: "SOC", q: "Trust Services Criteria", a: "Five principles used in SOC 2: Security (common criteria), Availability, Processing Integrity, Confidentiality, Privacy." },
+  { topic: "IT Controls", q: "General IT Controls (GITCs)", a: "Pervasive controls over the entire IT environment: logical access, change management, computer operations, and program development." },
+  { topic: "IT Controls", q: "Application controls", a: "Controls embedded within specific software applications. Include input controls, processing controls, and output controls." },
+  { topic: "IT Controls", q: "SDLC", a: "System Development Life Cycle — the structured process for planning, creating, testing, and deploying information systems. Phases: planning, analysis, design, development, testing, implementation, maintenance." },
+  { topic: "IT Controls", q: "COBIT", a: "Control Objectives for Information and Related Technologies. A framework for IT governance and management aligned with business goals." },
+  { topic: "IT Controls", q: "Change management controls", a: "Controls that ensure only authorized, tested, and approved changes are made to IT systems. A key GITC." },
+  { topic: "Security", q: "Least privilege principle", a: "Users should be granted only the minimum access rights needed to perform their job functions." },
+  { topic: "Security", q: "Phishing", a: "A social engineering attack using fraudulent emails or messages to trick users into revealing credentials or installing malware." },
+  { topic: "Security", q: "Ransomware", a: "Malware that encrypts a victim's data and demands payment for the decryption key." },
+  { topic: "Security", q: "Multi-factor authentication (MFA)", a: "Requires users to verify identity using two or more factors: something you know, something you have, something you are." },
+  { topic: "Security", q: "Symmetric encryption", a: "Uses the same key for both encryption and decryption. Fast and efficient for large data sets." },
+  { topic: "Security", q: "Asymmetric encryption", a: "Uses a public key to encrypt and a private key to decrypt. Used for secure data transmission and digital signatures." },
+  { topic: "Security", q: "Hashing", a: "A one-way function that converts data into a fixed-length string. Cannot be reversed. Used for password storage and data integrity checks." },
+  { topic: "Security", q: "GDPR", a: "General Data Protection Regulation — EU law governing data privacy and protection for individuals within the EU." },
+  { topic: "Security", q: "HIPAA", a: "Health Insurance Portability and Accountability Act — US law requiring protection of patient health information." },
+  { topic: "BCP/DRP", q: "Business Continuity Plan (BCP)", a: "A plan to ensure critical business functions can continue during and after a disaster or major disruption." },
+  { topic: "BCP/DRP", q: "Disaster Recovery Plan (DRP)", a: "A plan focused specifically on restoring IT systems and infrastructure after a disaster. A subset of BCP." },
+  { topic: "BCP/DRP", q: "RTO (Recovery Time Objective)", a: "The maximum acceptable amount of time a system can be offline after a disaster before business is severely impacted." },
+  { topic: "BCP/DRP", q: "RPO (Recovery Point Objective)", a: "The maximum acceptable amount of data loss measured in time. Determines how frequently backups must occur." },
+  { topic: "BCP/DRP", q: "Full backup", a: "Backs up all data every time. Slowest to perform but fastest to restore from." },
+  { topic: "BCP/DRP", q: "Incremental backup", a: "Backs up only data changed since the last backup (full or incremental). Fastest to run, but slowest to restore." },
+  { topic: "BCP/DRP", q: "Differential backup", a: "Backs up all data changed since the last full backup. Middle ground between full and incremental for speed." },
+  { topic: "Emerging", q: "Blockchain", a: "A distributed, immutable ledger that records transactions across multiple nodes. Key features: decentralization, transparency, immutability." },
+  { topic: "Emerging", q: "Smart contracts", a: "Self-executing contracts with terms written in code on a blockchain. Automatically execute when conditions are met." },
+  { topic: "Emerging", q: "RPA (Robotic Process Automation)", a: "Software bots that automate repetitive, rule-based tasks. Audit considerations include control over bot access and change management." },
+];
+
+const quizQuestions = [
+  { q: "Which SOC report is intended for general public distribution?", opts: ["SOC 1", "SOC 2", "SOC 3", "SOC for Cybersecurity"], correct: 2, topic: "SOC", exp: "SOC 3 covers the same Trust Services Criteria as SOC 2 but is written for general use — it can be freely distributed and doesn't include detailed test descriptions." },
+  { q: "A Type 2 SOC report differs from a Type 1 report in that it:", opts: ["Covers financial reporting controls", "Tests controls over a period of time", "Is available to the general public", "Covers only the security criterion"], correct: 1, topic: "SOC", exp: "Type 1 reports are as of a point in time. Type 2 reports cover a period (usually 6–12 months) and include results of tests of operating effectiveness." },
+  { q: "General IT Controls (GITCs) are best described as:", opts: ["Controls within a specific application for input and output", "Pervasive controls over the entire IT environment", "Controls that prevent ransomware attacks", "Application-level authorization controls"], correct: 1, topic: "IT Controls", exp: "GITCs are pervasive — they apply across the IT environment. Key categories include logical access controls, change management, computer operations, and program development." },
+  { q: "The principle of least privilege means:", opts: ["All users share the same access rights", "Users get access only to what they need for their job", "Managers have unrestricted system access", "Passwords must be changed every 30 days"], correct: 1, topic: "Security", exp: "Least privilege limits user access rights to only what is necessary to perform their role, reducing the risk of unauthorized access or accidental damage." },
+  { q: "RTO stands for:", opts: ["Residual Transfer Object", "Recovery Time Objective", "Redundant Technology Option", "Risk Tolerance Overview"], correct: 1, topic: "BCP/DRP", exp: "Recovery Time Objective (RTO) is the maximum acceptable downtime after a disaster — how long a system can be offline before the impact is unacceptable." },
+  { q: "Which type of encryption uses the same key for both encrypting and decrypting data?", opts: ["Asymmetric encryption", "Hashing", "Symmetric encryption", "Public key encryption"], correct: 2, topic: "Security", exp: "Symmetric encryption uses one shared key for both operations. It's fast and efficient for large data, but key distribution is a challenge." },
+  { q: "A differential backup captures:", opts: ["All data every time it runs", "Only data changed since the last backup of any type", "Data changed since the last full backup", "Only deleted files"], correct: 2, topic: "BCP/DRP", exp: "Differential backups capture everything changed since the last full backup. They are larger than incremental backups but faster to restore from." },
+  { q: "Which of the following is a characteristic of blockchain technology?", opts: ["Centralized control by a single authority", "Data can be easily modified after entry", "Transactions are recorded across multiple distributed nodes", "Only used for cryptocurrency"], correct: 2, topic: "Emerging", exp: "Blockchain is a distributed ledger — records are maintained across many nodes, making it highly resistant to tampering. It has audit implications beyond just cryptocurrency." },
+  { q: "SOC 1 reports are focused on controls related to:", opts: ["Cybersecurity risk management", "Internal control over financial reporting (ICFR)", "Privacy compliance", "System availability"], correct: 1, topic: "SOC", exp: "SOC 1 reports (formerly SAS 70) focus on service organization controls that are relevant to a user entity's internal control over financial reporting." },
+  { q: "The SDLC phase where user requirements are gathered and documented is:", opts: ["Implementation", "Testing", "Analysis", "Maintenance"], correct: 2, topic: "IT Controls", exp: "The Analysis phase of the SDLC involves gathering, documenting, and analyzing user and business requirements before system design begins." },
+  { q: "Which privacy law governs the protection of health information in the United States?", opts: ["GDPR", "CCPA", "HIPAA", "FERPA"], correct: 2, topic: "Security", exp: "HIPAA (Health Insurance Portability and Accountability Act) is the US federal law that protects patient health information and applies to healthcare providers, insurers, and their business associates." },
+  { q: "RPO (Recovery Point Objective) determines:", opts: ["How long systems can be offline", "How much data loss is acceptable", "Which systems to restore first", "The cost of a backup system"], correct: 1, topic: "BCP/DRP", exp: "RPO defines the maximum acceptable amount of data loss measured in time — it directly determines how frequently backups must be performed." },
+];
+
+let currentCard = 0;
+let filteredCards = [...flashcards];
+let quizAnswered = new Array(quizQuestions.length).fill(null);
+let quizScore = 0;
+
+function showTab(tab) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+  document.getElementById(tab).classList.add('visible');
+  document.querySelectorAll('.nav button').forEach((b, i) => {
+    b.classList.remove('active');
+  });
+  const tabs = ['overview','flashcards','quiz','cheatsheet'];
+  document.querySelectorAll('.nav button')[tabs.indexOf(tab)].classList.add('active');
+  if (tab === 'flashcards') renderCard();
+  if (tab === 'quiz') renderQuiz();
+}
+
+function filterFlashcards() {
+  const val = document.getElementById('fc-topic-filter').value;
+  filteredCards = val === 'all' ? [...flashcards] : flashcards.filter(c => c.topic === val);
+  currentCard = 0;
+  document.getElementById('flashcard').classList.remove('flipped');
+  renderCard();
+}
+
+function renderCard() {
+  if (!filteredCards.length) return;
+  const c = filteredCards[currentCard];
+  document.getElementById('fc-question').textContent = c.q;
+  document.getElementById('fc-answer').textContent = c.a;
+  document.getElementById('fc-counter').textContent = (currentCard + 1) + ' / ' + filteredCards.length;
+  document.getElementById('flashcard').classList.remove('flipped');
+}
+
+function flipCard() { document.getElementById('flashcard').classList.toggle('flipped'); }
+
+function nextCard() {
+  currentCard = (currentCard + 1) % filteredCards.length;
+  renderCard();
+}
+
+function prevCard() {
+  currentCard = (currentCard - 1 + filteredCards.length) % filteredCards.length;
+  renderCard();
+}
+
+function renderQuiz() {
+  const container = document.getElementById('quiz-container');
+  container.innerHTML = '';
+  quizQuestions.forEach((q, qi) => {
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.style.marginBottom = '16px';
+    let optsHtml = q.opts.map((o, oi) => {
+      let cls = 'quiz-opt';
+      let disabled = '';
+      if (quizAnswered[qi] !== null) {
+        disabled = 'disabled';
+        if (oi === q.correct) cls += ' reveal';
+        else if (oi === quizAnswered[qi]) cls += ' wrong';
+      }
+      return `<button class="${cls}" ${disabled} onclick="answerQuiz(${qi}, ${oi})">${o}</button>`;
+    }).join('');
+    let expHtml = quizAnswered[qi] !== null ? `<div class="explanation">${q.exp}</div>` : '';
+    div.innerHTML = `<div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:6px;">${q.topic}</div><div class="quiz-q">Q${qi+1}. ${q.q}</div>${optsHtml}${expHtml}`;
+    container.appendChild(div);
+  });
+  updateScore();
+}
+
+function answerQuiz(qi, oi) {
+  if (quizAnswered[qi] !== null) return;
+  quizAnswered[qi] = oi;
+  if (oi === quizQuestions[qi].correct) quizScore++;
+  renderQuiz();
+}
+
+function updateScore() {
+  const answered = quizAnswered.filter(a => a !== null).length;
+  document.getElementById('quiz-score').textContent = 'Score: ' + quizScore + ' / ' + answered;
+  document.getElementById('quiz-progress').style.width = Math.round((answered / quizQuestions.length) * 100) + '%';
+}
+
+function resetQuiz() {
+  quizAnswered = new Array(quizQuestions.length).fill(null);
+  quizScore = 0;
+  renderQuiz();
+}
+
+renderCard();
+</script>
