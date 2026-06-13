@@ -356,14 +356,14 @@ body {
 const groups = {
   A: {
     teams: [
-      { name: "Mexico",      flag: "🇲🇽", host: true,  img: "", W:0,D:0,L:0,GF:0,GA:0 },
-      { name: "South Africa",flag: "🇿🇦", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
-      { name: "South Korea", flag: "🇰🇷", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
-      { name: "Czechia",     flag: "🇨🇿", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Mexico",      flag: "🇲🇽", host: true,  img: "", W:1,D:0,L:0,GF:2,GA:0 },
+      { name: "South Africa",flag: "🇿🇦", host: false, img: "", W:0,D:0,L:1,GF:0,GA:2 },
+      { name: "South Korea", flag: "🇰🇷", host: false, img: "", W:1,D:0,L:0,GF:2,GA:1 },
+      { name: "Czechia",     flag: "🇨🇿", host: false, img: "", W:0,D:0,L:1,GF:1,GA:2 },
     ],
     matches: [
-      { home:"Mexico",       away:"South Africa", homeScore:null, awayScore:null, date:"Jun 11", time:"3pm ET",  md:"MD1" },
-      { home:"South Korea",  away:"Czechia",      homeScore:null, awayScore:null, date:"Jun 11", time:"10pm ET", md:"MD1" },
+      { home:"Mexico",       away:"South Africa", homeScore:2, awayScore:0, date:"Jun 11", time:"3pm ET",  md:"MD1" },
+      { home:"South Korea",  away:"Czechia",      homeScore:2, awayScore:1, date:"Jun 11", time:"10pm ET", md:"MD1" },
       { home:"Mexico",       away:"South Korea",  homeScore:null, awayScore:null, date:"Jun 17", time:"TBD",     md:"MD2" },
       { home:"Czechia",      away:"South Africa", homeScore:null, awayScore:null, date:"Jun 17", time:"TBD",     md:"MD2" },
       { home:"Mexico",       away:"Czechia",      homeScore:null, awayScore:null, date:"Jun 24", time:"TBD",     md:"MD3" },
@@ -372,13 +372,13 @@ const groups = {
   },
   B: {
     teams: [
-      { name: "Canada",      flag: "🇨🇦", host: true,  img: "", W:0,D:0,L:0,GF:0,GA:0 },
-      { name: "Bosnia-Herz", flag: "🇧🇦", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "Canada",      flag: "🇨🇦", host: true,  img: "", W:0,D:1,L:0,GF:1,GA:1 },
+      { name: "Bosnia-Herz", flag: "🇧🇦", host: false, img: "", W:0,D:1,L:0,GF:1,GA:1 },
       { name: "Qatar",       flag: "🇶🇦", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
       { name: "Switzerland", flag: "🇨🇭", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
     ],
     matches: [
-      { home:"Canada",      away:"Bosnia-Herz",  homeScore:null, awayScore:null, date:"Jun 12", time:"3pm ET",  md:"MD1" },
+      { home:"Canada",      away:"Bosnia-Herz",  homeScore:1, awayScore:1, date:"Jun 12", time:"3pm ET",  md:"MD1" },
       { home:"Qatar",       away:"Switzerland",  homeScore:null, awayScore:null, date:"Jun 13", time:"3pm ET",  md:"MD1" },
       { home:"Canada",      away:"Qatar",        homeScore:null, awayScore:null, date:"Jun 18", time:"TBD",     md:"MD2" },
       { home:"Switzerland", away:"Bosnia-Herz",  homeScore:null, awayScore:null, date:"Jun 18", time:"TBD",     md:"MD2" },
@@ -404,13 +404,13 @@ const groups = {
   },
   D: {
     teams: [
-      { name: "USA",      flag: "🇺🇸", host: true,  img: "", W:0,D:0,L:0,GF:0,GA:0 },
-      { name: "Paraguay", flag: "🇵🇾", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
+      { name: "USA",      flag: "🇺🇸", host: true,  img: "", W:1,D:0,L:0,GF:4,GA:1 },
+      { name: "Paraguay", flag: "🇵🇾", host: false, img: "", W:0,D:0,L:1,GF:1,GA:4 },
       { name: "Australia",flag: "🇦🇺", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
       { name: "Turkey",   flag: "🇹🇷", host: false, img: "", W:0,D:0,L:0,GF:0,GA:0 },
     ],
     matches: [
-      { home:"USA",      away:"Paraguay",  homeScore:null, awayScore:null, date:"Jun 12", time:"9pm ET",  md:"MD1" },
+      { home:"USA",      away:"Paraguay",  homeScore:4, awayScore:1, date:"Jun 12", time:"9pm ET",  md:"MD1" },
       { home:"Australia",away:"Turkey",    homeScore:null, awayScore:null, date:"Jun 13", time:"TBD",     md:"MD1" },
       { home:"USA",      away:"Australia", homeScore:null, awayScore:null, date:"Jun 19", time:"TBD",     md:"MD2" },
       { home:"Turkey",   away:"Paraguay",  homeScore:null, awayScore:null, date:"Jun 19", time:"TBD",     md:"MD2" },
