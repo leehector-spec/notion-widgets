@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Sweet Magnolia — Quick Add</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #1c211d;
+    --panel: #262d27;
+    --panel-raised: #2e362f;
+    --seam: #3a443b;
+    --text: #ece8df;
+    --text-dim: #8f978f;
+    --green: #4c8c4a;
+    --green-dim: #34532f;
+    --amber: #f2a93b;
+    --amber-dim: #8a6420;
+    --danger: #c9573f;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--bg);
+    background-image:
+      radial-gradient(circle at 20% -10%, rgba(76,140,74,0.10), transparent 40%),
+      radial-gradient(circle at 100% 110%, rgba(242,169,59,0.06), transparent 40%);
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    min-height: 100vh;
+    display:flex;
+    justify-content:center;
+    padding: 22px 14px 60px;
+  }
+  .device{
+    width:100%;
+    max-width: 420px;
+  }
+  .stamp{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom: 14px;
+    padding: 0 4px;
+  }
+  .stamp h1{
+    font-family:'Oswald', sans-serif;
+    font-weight:700;
+    font-size: 15px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    margin:0;
+    color: var(--text);
+  }
+  .stamp span{
+    display:block;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    margin-top:3px;
+  }
+  .bolt{
+    width:9px; height:9px; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #6b756c, #22261f 70%);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.4);
+  }
+  .panel{
+    background: var(--panel);
+    border-radius: var(--radius);
+    border: 1px solid var(--seam);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.03);
+    padding: 18px 18px 20px;
+    position: relative;
+  }
+  .panel::before, .panel::after,
+  .panel .corner-l, .panel .corner-r{
+    content:"";
+    position:absolute;
+    width:7px; height:7px; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #565f56, #171b17 70%);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.5);
+  }
+  .panel::before{ top:10px; left:10px; }
+  .panel::after{ top:10px; right:10px; }
+  .panel .corner-l{ bottom:10px; left:10px; }
+  .panel .corner-r{ bottom:10px; right:10px; }
+
+  .toggle-row{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .toggle-btn{
+    font-family:'Oswald', sans-serif;
+    font-weight:600;
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 13px 8px;
+    border-radius: 9px;
+    border: 1px solid var(--seam);
+    background: var(--bg);
+    color: var(--text-dim);
+    cursor:pointer;
+    transition: background .15s ease, color .15s ease, box-shadow .15s ease;
+  }
+  .toggle-btn[aria-pressed="true"]{
+    color: #10140f;
+    background: var(--green);
+    box-shadow: 0 0 0 1px var(--green), 0 0 14px rgba(76,140,74,0.45);
+  }
+
+  .field{
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .field label{
+    display:block;
+    font-size: 10px;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  select, input[type=text], input[type=number]{
+    width:100%;
+    background: var(--bg);
+    border: 1px solid var(--seam);
+    border-radius: 9px;
+    color: var(--text);
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 15px;
+    padding: 11px 12px;
+    appearance:none;
+    -webkit-appearance:none;
+  }
+  select:focus, input:focus{
+    outline: none;
+    border-color: var(--amber);
+    box-shadow: 0 0 0 3px rgba(242,169,59,0.18);
+  }
+  .design-wrap{
+    max-height: 0;
+    opacity: 0;
+    transition: max-height .25s ease, opacity .2s ease, margin .25s ease;
+    margin-bottom: 0;
+  }
+  .design-wrap.open{
+    max-height: 90px;
+    opacity: 1;
+    margin-bottom: 14px;
+  }
+
+  .qty-block{
+    background: var(--panel-raised);
+    border: 1px solid var(--seam);
+    border-radius: 11px;
+    padding: 12px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom: 18px;
+  }
+  .qty-label{
+    font-size: 10px;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .qty-controls{
+    display:flex;
+    align-items:center;
+    gap: 4px;
+  }
+  .qty-btn{
+    width: 40px; height:40px;
+    border-radius: 8px;
+    border: 1px solid var(--seam);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 20px;
+    line-height: 1;
+    cursor:pointer;
+  }
+  .qty-btn:active{ background: var(--seam); }
+  .qty-readout{
+    width: 64px;
+    text-align:center;
+    background:transparent;
+    border:none;
+    color: var(--amber);
+    font-family:'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 26px;
+    text-shadow: 0 0 12px rgba(242,169,59,0.35);
+  }
+
+  .press-btn{
+    width:100%;
+    font-family:'Oswald', sans-serif;
+    font-weight:700;
+    font-size: 15px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 16px;
+    border-radius: 10px;
+    border: 1px solid var(--green-dim);
+    background: linear-gradient(180deg, #3f7a3d, #33642f);
+    color: #eafbe8;
+    cursor:pointer;
+    position:relative;
+    overflow:hidden;
+    box-shadow: 0 4px 0 var(--green-dim), 0 8px 18px rgba(0,0,0,0.35);
+  }
+  .press-btn:active{
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 var(--green-dim), 0 5px 12px rgba(0,0,0,0.3);
+  }
+  .press-btn .fill{
+    position:absolute;
+    left:0; top:0; bottom:0;
+    width:0%;
+    background: rgba(255,255,255,0.14);
+    transition: width .9s linear;
+  }
+  .press-btn.pressing .fill{ width:100%; }
+  .press-btn[disabled]{ opacity:.75; cursor: default; }
+
+  .status{
+    margin-top: 14px;
+    font-size: 12px;
+    letter-spacing: .5px;
+    text-align:center;
+    min-height: 16px;
+    color: var(--text-dim);
+  }
+  .status.ok{ color: var(--green); }
+  .status.err{ color: var(--danger); }
+
+  .footnote{
+    text-align:center;
+    color: var(--text-dim);
+    font-size: 10px;
+    letter-spacing: 1px;
+    margin-top: 16px;
+    text-transform: uppercase;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .press-btn .fill, .design-wrap{ transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="device">
+  <div class="stamp">
+    <div>
+      <h1>Sweet Magnolia</h1>
+      <span>Shelf Quick-Add</span>
+    </div>
+    <div class="bolt"></div>
+  </div>
+
+  <form class="panel" id="qaForm">
+    <div class="corner-l"></div>
+    <div class="corner-r"></div>
+
+    <div class="toggle-row" role="group" aria-label="Item type">
+      <button type="button" class="toggle-btn" data-type="Blank" aria-pressed="true">Blank</button>
+      <button type="button" class="toggle-btn" data-type="Pre-Printed" aria-pressed="false">Pre-Printed</button>
+    </div>
+
+    <div class="design-wrap" id="designWrap">
+      <div class="field">
+        <label for="design">Design name</label>
+        <input type="text" id="design" placeholder="Touch Grass">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="brand">Brand / style</label>
+      <select id="brand">
+        <option>Gildan 5000</option>
+        <option>Bella+Canvas 3001</option>
+        <option>Comfort Colors 1717</option>
+        <option>Next Level 3600</option>
+        <option>Port &amp; Company</option>
+        <option>Other</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="color">Color</label>
+      <input type="text" id="color" placeholder="Black" autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label for="size">Size</label>
+      <select id="size">
+        <option>S</option>
+        <option>M</option>
+        <option selected>L</option>
+        <option>XL</option>
+        <option>2XL</option>
+        <option>3XL</option>
+        <option>4XL</option>
+      </select>
+    </div>
+
+    <div class="qty-block">
+      <span class="qty-label">Qty</span>
+      <div class="qty-controls">
+        <button type="button" class="qty-btn" id="qtyMinus" aria-label="Decrease quantity">&minus;</button>
+        <input class="qty-readout" id="qty" type="number" value="1" inputmode="numeric">
+        <button type="button" class="qty-btn" id="qtyPlus" aria-label="Increase quantity">&plus;</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="notes">Notes (optional)</label>
+      <input type="text" id="notes" placeholder="e.g. from Kristen's restock run">
+    </div>
+
+    <button type="submit" class="press-btn" id="pressBtn">
+      <span class="fill"></span>
+      <span class="btn-text">Press to Log</span>
+    </button>
+
+    <div class="status" id="status"></div>
+  </form>
+
+  <div class="footnote">Logs straight to your inventory sheet</div>
+</div>
+
+<script>
+  // Paste your Apps Script Web App URL here after deploying Code.gs
+  const SCRIPT_URL = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
+
+  const form = document.getElementById('qaForm');
+  const designWrap = document.getElementById('designWrap');
+  const toggleBtns = document.querySelectorAll('.toggle-btn');
+  const qtyInput = document.getElementById('qty');
+  const pressBtn = document.getElementById('pressBtn');
+  const statusEl = document.getElementById('status');
+
+  let itemType = 'Blank';
+
+  toggleBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      itemType = btn.dataset.type;
+      toggleBtns.forEach(b => b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'));
+      designWrap.classList.toggle('open', itemType === 'Pre-Printed');
+    });
+  });
+
+  document.getElementById('qtyMinus').addEventListener('click', () => {
+    qtyInput.value = Math.max(1, (parseInt(qtyInput.value || '1', 10) - 1));
+  });
+  document.getElementById('qtyPlus').addEventListener('click', () => {
+    qtyInput.value = (parseInt(qtyInput.value || '1', 10) + 1);
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    if (SCRIPT_URL.indexOf('PASTE_YOUR') === 0) {
+      statusEl.textContent = 'Set SCRIPT_URL in the file first — see setup notes.';
+      statusEl.className = 'status err';
+      return;
+    }
+
+    const payload = {
+      itemType,
+      design: document.getElementById('design').value.trim(),
+      brand: document.getElementById('brand').value,
+      color: document.getElementById('color').value.trim(),
+      size: document.getElementById('size').value,
+      qty: parseInt(qtyInput.value || '0', 10),
+      notes: document.getElementById('notes').value.trim()
+    };
+
+    if (!payload.color) {
+      statusEl.textContent = 'Add a color before logging.';
+      statusEl.className = 'status err';
+      return;
+    }
+
+    pressBtn.classList.add('pressing');
+    pressBtn.disabled = true;
+    statusEl.textContent = 'Logging...';
+    statusEl.className = 'status';
+
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (data.status === 'ok') {
+        statusEl.textContent = 'Logged \u2713  ' + payload.qty + ' \u00d7 ' + payload.brand + ' / ' + payload.color + ' / ' + payload.size;
+        statusEl.className = 'status ok';
+        document.getElementById('color').value = '';
+        document.getElementById('notes').value = '';
+        document.getElementById('design').value = '';
+        qtyInput.value = 1;
+      } else {
+        statusEl.textContent = data.message || 'Something went wrong.';
+        statusEl.className = 'status err';
+      }
+    } catch (err) {
+      statusEl.textContent = 'Network error — check your connection and try again.';
+      statusEl.className = 'status err';
+    }
+
+    setTimeout(() => {
+      pressBtn.classList.remove('pressing');
+      pressBtn.disabled = false;
+    }, 350);
+  });
+</script>
+
+</body>
+</html>
